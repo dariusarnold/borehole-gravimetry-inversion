@@ -1,7 +1,13 @@
+//
+// Struct that holds a single measurement data point
+//
+
 #ifndef PROGRAMM_MEASUREMENTDATA_H
 #define PROGRAMM_MEASUREMENTDATA_H
 
+
 const double FREE_AIR_GRADIENT = 0.308; // MGal/m
+
 
 /**
  * Struct that holds measurement data read from file and associates the data
