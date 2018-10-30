@@ -3,4 +3,4 @@ project(Programm)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(Programm main.cpp MeasurementData.h MeasurementData.cpp)
+add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h MeasurementData.cpp GravimetryInversion.h GravimetryInversion.cpp )
