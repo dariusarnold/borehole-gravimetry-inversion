@@ -7,7 +7,7 @@
 
 /**
  * Struct that holds measurement data read from file and associates the data
- * with a label.
+ * with a label which describes the data.
  */
 struct MeasurementData{
     double depth;
@@ -16,7 +16,7 @@ struct MeasurementData{
 };
 
 /**
- * Output value of measurement data to stream.
+ * Output values of measurement data to stream.
  * @param os
  * @param md
  * @return
@@ -28,36 +28,29 @@ std::ostream& operator<<(std::ostream& os, const MeasurementData& md){
 
 
 /**
- * Read two values from a stringstream and save them in the Measurementdata.
- * The order of the values is the same as in the file.
+ * Read two values from a inputstream and save them in the Measurementdata.
+ * The order of the values is expected to be depth, gravity.
  * @param input
  * @param md
  * @return
  */
-std::istringstream& operator>>(std::istringstream& input, MeasurementData& md){
+std::istream& operator>>(std::istream& input, MeasurementData& md){
     input >> md.depth >> md.grav;
     return input;
 }
 
 class MeasurementReader{
 public:
-    std::vector<MeasurementData> read_measurements_file(std::string filepath);
+    std::vector<MeasurementData> read_measurements_file(const std::string& filepath);
 };
 
 
-std::vector<MeasurementData> MeasurementReader::read_measurements_file(std::string filepath) {
+std::vector<MeasurementData> MeasurementReader::read_measurements_file(const std::string& filepath) {
     std::ifstream matrixFile(filepath);
-    std::string line;
-    std::string num;
     std::vector<MeasurementData> output;
     if (matrixFile.is_open()){
-        // read a line, ending on newline
-        while (std::getline(matrixFile, line)) {
-            MeasurementData row;
-            // split and read into MeasurementData objects
-            std::istringstream iss(line);
-            iss >> row;
-            //iss >> row.depth >> row.grav;
+        MeasurementData row;
+        while (matrixFile >> row) {
             output.push_back(row);
         }
     }
