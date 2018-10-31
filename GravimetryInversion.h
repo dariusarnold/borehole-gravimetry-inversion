@@ -24,8 +24,10 @@ struct Representant{
  * @param b Representant
  * @return function objects used to evaluate the result of a*b
  */
-std::function<double(double)> operator*(const Representant& a, const Representant& b);
-
+ template <typename Callable>
+std::function<double(double)> operator*(const Callable& a, const Callable& b){
+    return [&a, &b](double arg) { return a(arg) * b(arg);};
+}
 
 /**
  * Calculate integral of f from the lower to the upper limit, using the given amount of steps

@@ -30,10 +30,6 @@ void GravimetryInversion::read_measurements_file(const std::string& filepath) {
 }
 
 
-std::function<double(double)> operator*(const Representant& a, const Representant& b){
-    return [&a, &b](double arg) { return a(arg) * b(arg);};
-}
-
 void GravimetryInversion::print_data(){
     std::cout << data;
 }
@@ -54,19 +50,22 @@ void GravimetryInversion::calculate_gram_matrix() {
     std::vector<Representant> repr;
     repr.reserve(data.size());
     for (auto el : data){
-        repr.push_back(Representant(el.depth));
+        repr.emplace_back(el.depth);
     }
-    // create integrator and bind common arguments (limits, steps) to it
+
+    // create integrator and bind common arguments (limits, steps) to it,
+    // creating a new function that only takes one argument, the function to integrate
     // set maximum integration limit to the maximum measured depth
     Integrator integrate;
     auto gram_integrate = std::bind(integrate, std::placeholders::_1, LOWER_LIMIT, data.back().depth, INTEGRAL_STEPS);
     // only unique elements in the gram matrix are the diagonal elements because of
     // g_ij = min(g_i, g_j)
+    // calculate these unique elements first and fill gram matrix with them later
     std::vector<double> gram_matrix_diag_elements;
     gram_matrix_diag_elements.reserve(data.size());
-    for (auto el : repr){
-        gram_matrix_diag_elements.push_back(gram_integrate(el*el));
-    }
+
+    std::transform(repr.begin(), repr.end(), std::back_inserter(gram_matrix_diag_elements), [&gram_integrate](Representant r){return gram_integrate(r*r);});
+
     // create matrix with as many columns/rows as data entries read from file
     // and fill it with the values from the diagonals in this pattern:
     // g11 g11 g11
