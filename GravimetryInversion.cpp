@@ -39,6 +39,16 @@ void GravimetryInversion::print_data(){
 }
 
 
+void GravimetryInversion::print_gram() {
+    std::cout << gram_matrix << std::endl;
+}
+
+
+void GravimetryInversion::print_alpha() {
+    std::cout << alpha << std::endl;
+}
+
+
 void GravimetryInversion::calculate_gram_matrix() {
     // create Representants for all data values
     std::vector<Representant> repr;
@@ -68,6 +78,18 @@ void GravimetryInversion::calculate_gram_matrix() {
             gram_matrix(row_index, column_index) = gram_matrix_diag_elements[std::min(row_index, column_index)];
         }
     }
+}
+
+
+void GravimetryInversion::solve_alpha(){
+    // create eigen::vector and copy gravity measurements into it
+    Eigen::VectorXd data_vec(data.size());
+    for (int i = 0; i < data.size(); ++i){
+        data_vec(i) = data[i].grav;
+    }
+    alpha.resize(data.size());
+    alpha = gram_matrix.colPivHouseholderQr().solve(data_vec);
+
 }
 
 

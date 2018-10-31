@@ -70,16 +70,32 @@ public:
     void print_data();
 
     /**
+     * print gram matrix to cout
+     */
+     void print_gram();
+
+     /**
+      * Print coefficients of alpha to cout
+      */
+     void print_alpha();
+
+    /**
      * Calculate the gram matrix Gamma_jk = integral_0^L g_j(z) * g_k(z) dz
      * with g_j, g_z Representants
      */
     void calculate_gram_matrix();
+
+    /**
+     * Solve the equation system given by d_j = Gamma_jk alpha for vector alpha
+     */
+     void solve_alpha();
 
 private:
     const double LOWER_LIMIT = 0; // m, lower limit of integral
     const uint32_t INTEGRAL_STEPS = 10000;  // discretization steps during integration
     std::vector<MeasurementData> data;
     Eigen::MatrixXd gram_matrix;
+    Eigen::VectorXd alpha;
 
 };
 
