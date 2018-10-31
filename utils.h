@@ -11,7 +11,7 @@
 template <typename T>
 std::ostream& operator<<(std::ostream& os, std::vector<T> vec){
     for (auto el : vec){
-        os << el;
+        os << el << std::endl;
     }
     return os;
 }

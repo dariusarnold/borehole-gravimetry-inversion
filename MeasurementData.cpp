@@ -9,7 +9,7 @@
 
 
 std::ostream& operator<<(std::ostream& os, const MeasurementData& md){
-    os << md.depth << " m \t" << md.grav << " mGal" << std::endl;
+    os << md.depth << " m \t" << md.grav << " mGal";
     return os;
 }
 
