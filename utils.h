@@ -16,4 +16,12 @@ std::ostream& operator<<(std::ostream& os, std::vector<T> vec){
     return os;
 }
 
+/**
+ * Heaviside step function: return 0 if arg < 0, 1 if arg >= 0
+ */
+template <typename T>
+T heaviside(T arg){
+    return arg < 0 ? 0. : 1.;
+}
+
 #endif //PROGRAMM_UTILS_H
