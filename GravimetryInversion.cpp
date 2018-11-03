@@ -130,7 +130,6 @@ void GravimetryInversion::write_density_distribution_to_file(const std::string& 
         }
         density.emplace_back(dens);
     }
-    std::cout << density << std::endl;
     FileWriter fw;
     fw.writeData(depth_meters, density, filepath);
 }
