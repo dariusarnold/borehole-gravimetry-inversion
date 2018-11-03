@@ -31,10 +31,11 @@ class MainApp(QWidget):
 
         self.setLayout(layout)
         self.setWindowTitle("Borehole Gravimetry Inversion")
-        self.setGeometry(10, 10, 1000, 1000)
+        self.setGeometry(50, 50, 1000, 1000)
 
     def do_inversion(self):
         fname = self.get_dat_input_file()
+        #fname = fname.replace("/", "\\")
         self.call_inversion_function(fname)
         result_fname = fname.replace(".dat", "_density.dat")
         depth, dens = self.load_density_from_file(result_fname)
@@ -72,7 +73,9 @@ class MainApp(QWidget):
         :return:
         :rtype:
         """
-        os.system("./cmake-build-debug/Programm {}".format(filepath))
+        progname = "Programm.exe" if os.name == 'nt' else "Programm"
+        prog_path = os.path.join(".", "cmake-build-debug", progname)
+        os.system("{} {}".format(prog_path, filepath))
 
     def load_density_from_file(self, filepath):
         with open(filepath, 'r') as f:

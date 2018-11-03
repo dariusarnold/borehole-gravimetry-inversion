@@ -133,7 +133,6 @@ void GravimetryInversion::write_density_distribution_to_file(const std::string& 
     FileWriter fw;
     fw.writeData(depth_meters, density, filepath);
 }
-}
 
 
 Representant::Representant(double zj) : zj(zj) {}
