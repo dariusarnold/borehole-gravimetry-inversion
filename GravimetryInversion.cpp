@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <numeric>
+#include <vector>
 // additional includes from installed libraries
 #include <Eigen/Dense>
 #include <Eigen/LU>
@@ -13,7 +15,7 @@
 #include "MeasurementData.h"
 #include "GravimetryInversion.h"
 #include "utils.h"
-
+#include "FileWriter.h"
 
 
 void GravimetryInversion::read_measurements_file(const std::string& filepath) {
@@ -91,6 +93,26 @@ void GravimetryInversion::solve_alpha(){
     alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
 }
 
+
+void GravimetryInversion::write_density_distribution_to_file(const std::string& filepath) {
+    // fill depth vector with ascending values
+    depth_meters.reserve(GravimetryInversion::INTEGRAL_STEPS);
+    double stepsize = data.back().depth / INTEGRAL_STEPS;
+    for (std::vector<double>::size_type i = 0; i != INTEGRAL_STEPS; ++i){
+        depth_meters.emplace_back(stepsize * i);
+    }
+    density.reserve(GravimetryInversion::INTEGRAL_STEPS);
+    for (int i = 0; i != INTEGRAL_STEPS; ++i){
+        double dens = 0;
+        for (int j = 0; j != representant_functions.size(); ++j){
+            dens += alpha[j] * representant_functions[j](depth_meters[i]);
+        }
+        density.emplace_back(dens);
+    }
+    std::cout << density << std::endl;
+    FileWriter fw;
+    fw.writeData(depth_meters, density, filepath);
+}
 }
 
 

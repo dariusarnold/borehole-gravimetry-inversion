@@ -92,6 +92,11 @@ public:
      */
      void solve_alpha();
 
+     /**
+      * Discretize density distribution and save it to .txt file
+      */
+     void write_density_distribution_to_file(const std::string& filepath);
+
 private:
     const double LOWER_LIMIT = 0; // m, lower limit of integral
     const uint32_t INTEGRAL_STEPS = 10000;  // discretization steps during integration

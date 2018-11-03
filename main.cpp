@@ -12,4 +12,5 @@ int main() {
     mr.print_gram();
     mr.solve_alpha();
     mr.print_alpha();
+    mr.write_density_distribution_to_file("../4_grav3_density.dat");
 }
