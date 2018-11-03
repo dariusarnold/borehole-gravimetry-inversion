@@ -3,6 +3,7 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QTextEdit, QFileDialog, QApplication
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import os
 import numpy as np
@@ -94,6 +95,7 @@ class PlotCanvas(FigureCanvas):
 
         #FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+        self.toolbar = NavigationToolbar(self, self)
 
     def plot(self, depth, density):
         ax = self.figure.add_subplot(111)
