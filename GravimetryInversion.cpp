@@ -85,8 +85,11 @@ void GravimetryInversion::solve_alpha(){
     for (int i = 0; i < data.size(); ++i){
         data_vec(i) = data[i].grav;
     }
-    alpha.resize(data.size());
-    alpha = gram_matrix.colPivHouseholderQr().solve(data_vec);
+    // use Eigen to solve the matrix equation
+    Eigen::VectorXd alpha_eigen = gram_matrix.colPivHouseholderQr().solve(data_vec);
+    //convert result from Eigen type to std::vector
+    alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+}
 
 }
 

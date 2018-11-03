@@ -98,7 +98,7 @@ private:
     std::vector<MeasurementData> data;
     std::vector<Representant> representant_functions;
     Eigen::MatrixXd gram_matrix;
-    Eigen::VectorXd alpha;
+    std::vector<double> alpha;
 
 };
 
