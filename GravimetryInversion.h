@@ -115,6 +115,8 @@ private:
     std::vector<Representant> representant_functions;
     Eigen::MatrixXd gram_matrix;
     std::vector<double> alpha;
+    std::vector<double> density;
+    std::vector<double> depth_meters;
 
 };
 
