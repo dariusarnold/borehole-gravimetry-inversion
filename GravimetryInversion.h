@@ -58,6 +58,17 @@ struct Integrator{
  */
 class GravimetryInversion{
 public:
+
+    /**
+     * Do an inversion on data read from file and save the result, a discretized density distribution
+     * in a file in the same path were data was read from.
+     * @param filepath Path to file containing data in the following format:
+     * no header, on column depth in m, one col gravity measured in mGal, tab seperated.
+     * One depth/gravity pair per line
+     */
+    void invert_data_from_file(const std::string& filepath);
+
+
     /**
      * Open .dat file and read measurements.
      * It is expected that data is given in depth, gravity measurement order.

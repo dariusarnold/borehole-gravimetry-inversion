@@ -2,6 +2,8 @@
 // Class to perform a gravimetry inversion
 //
 
+#define DEBUG 1
+
 // standard library includes
 #include <fstream>
 #include <iostream>
@@ -16,6 +18,25 @@
 #include "GravimetryInversion.h"
 #include "utils.h"
 #include "FileWriter.h"
+
+
+
+void GravimetryInversion::invert_data_from_file(const std::string &filepath) {
+    GravimetryInversion mr;
+    mr.read_measurements_file(filepath);
+    #ifdef DEBUG
+        mr.print_data();
+    #endif
+    mr.calculate_gram_matrix();
+    #ifdef DEBUG
+        mr.print_gram();
+    #endif
+    mr.solve_alpha();
+    #ifdef DEBUG
+        mr.print_alpha();
+    #endif
+    mr.write_density_distribution_to_file(filepath);
+}
 
 
 void GravimetryInversion::read_measurements_file(const std::string& filepath) {
