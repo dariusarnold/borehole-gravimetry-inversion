@@ -47,10 +47,9 @@ void GravimetryInversion::print_alpha() {
 
 void GravimetryInversion::calculate_gram_matrix() {
     // create Representants for all data values
-    std::vector<Representant> repr;
-    repr.reserve(data.size());
+    representant_functions.reserve(data.size());
     for (auto el : data){
-        repr.emplace_back(el.depth);
+        representant_functions.emplace_back(el.depth);
     }
 
     // create integrator and bind common arguments (limits, steps) to it,
@@ -64,7 +63,7 @@ void GravimetryInversion::calculate_gram_matrix() {
     std::vector<double> gram_matrix_diag_elements;
     gram_matrix_diag_elements.reserve(data.size());
 
-    std::transform(repr.begin(), repr.end(), std::back_inserter(gram_matrix_diag_elements), [&gram_integrate](Representant r){return gram_integrate(r*r);});
+    std::transform(representant_functions.begin(), representant_functions.end(), std::back_inserter(gram_matrix_diag_elements), [&gram_integrate](Representant r){return gram_integrate(r*r);});
 
     // create matrix with as many columns/rows as data entries read from file
     // and fill it with the values from the diagonals in this pattern:

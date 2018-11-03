@@ -96,6 +96,7 @@ private:
     const double LOWER_LIMIT = 0; // m, lower limit of integral
     const uint32_t INTEGRAL_STEPS = 10000;  // discretization steps during integration
     std::vector<MeasurementData> data;
+    std::vector<Representant> representant_functions;
     Eigen::MatrixXd gram_matrix;
     Eigen::VectorXd alpha;
 
