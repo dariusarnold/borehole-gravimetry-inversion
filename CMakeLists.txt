@@ -11,7 +11,7 @@ endif (WIN32)
     find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 endif (UNIX)
 
-add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h MeasurementData.cpp GravimetryInversion.h GravimetryInversion.cpp )
+add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h MeasurementData.cpp GravimetryInversion.h GravimetryInversion.cpp FileWriter.cpp FileWriter.h)
 if (WIN32)
     target_link_libraries(Programm ${EIGEN_DIR})
 endif (WIN32)
