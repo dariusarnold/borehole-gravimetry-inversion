@@ -25,7 +25,7 @@ class MainApp(QMainWindow):
         plot_measurement_data_action.triggered.connect(self.plot_measurement_data)
 
         # create action to load input file for inversion and do inversion
-        load_dat_file_action = QAction("&Load .dat input", self)
+        load_dat_file_action = QAction("&Invert for density model", self)
         load_dat_file_action.setStatusTip("Select a file containing measurements for inversion")
         load_dat_file_action.triggered.connect(self.do_inversion)
         load_dat_file_action.showStatusText(self)
@@ -82,20 +82,17 @@ class MainApp(QMainWindow):
             return
         self.call_inversion_function(fname)
         result_fname = fname.replace(".dat", "_density.dat")
-        depth, dens = self.load_density_from_file(result_fname)
-        self.p.plot(depth, dens, title="Density model", ylabel='Density (g/cm³)', linestyle='r-')
-        self.setWindowTitle("Density model for {}".format(fname))
+        self.plot_inversion_results(result_fname)
 
-    def plot_inversion_results(self):
-        fname = self.get_dat_result_filepath()
+    def plot_inversion_results(self, fname=None):
         if fname is None:
-            return
+            self.get_dat_result_filepath()
         if "density" not in fname:
             QMessageBox.question(self, "Wrong file selected!", "Select a file with density in filename", QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
             return
         depth, dens = self.load_density_from_file(fname)
-        self.p.plot(depth, dens, title='Density model', ylabel='Density (g/cm³)', linestyle='r-')
+        self.p.plot(depth, dens, 'Density model', 'Density (g/cm³)', 'r-')
         self.setWindowTitle("Density model for {}".format(fname))
 
     def plot_measurement_data(self):
@@ -107,7 +104,7 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage("Invalid file")
             return
         depth, grav = self.load_density_from_file(fname)
-        self.p.plot(depth, grav, title="Gravity measurement", ylabel="Gravity (mGal)", linestyle='.')
+        self.p.plot(depth, grav, "Gravity measurement", "Gravity (mGal)", 'r+', markersize=10)
         self.setWindowTitle("Measurement data for {}".format(fname))
 
     def get_dat_input_filepath(self):
@@ -149,7 +146,7 @@ class MainApp(QMainWindow):
 
 class PlotCanvas(FigureCanvas):
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, parent=None, width=5, height=4, dpi=144):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         self.fig.set_tight_layout(True)
@@ -167,7 +164,7 @@ class PlotCanvas(FigureCanvas):
         ax = self.fig.gca()
         # clear previous ax content, so replotting works
         ax.clear()
-        ax.plot(x_values, y_values, linestyle)
+        ax.plot(x_values, y_values, *args, **kwargs)
         ax.set_title(title)
         ax.set_xlabel("Depth (m)")
         ax.set_ylabel(ylabel)
