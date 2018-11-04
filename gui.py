@@ -164,7 +164,7 @@ class PlotCanvas(FigureCanvas):
         return NavigationToolbar(self, parent)
 
     def plot(self, x_values, y_values, title, ylabel, *args, **kwargs):
-        ax = self.figure.add_subplot(111)
+        ax = self.fig.gca()
         # clear previous ax content, so replotting works
         ax.clear()
         ax.plot(x_values, y_values, linestyle)
