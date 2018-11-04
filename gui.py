@@ -10,32 +10,34 @@ import os
 import numpy as np
 
 
-class MainApp(QWidget):
-    def __init__(self, parent=None):
-        super(MainApp, self).__init__(parent)
+class MainApp(QMainWindow):
+    def __init__(self, *args, **kwargs):
+        super(MainApp, self).__init__(*args, **kwargs)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
+        self.main_widget = QWidget(self)
 
         #create action to plot measurement data
         plot_measurement_data_action = QAction("Plot &measurement data", self)
+        plot_measurement_data_action.setStatusTip("Select a file containing measurements to plot them")
         plot_measurement_data_action.triggered.connect(self.plot_measurement_data)
 
         # create action to load input file for inversion and do inversion
         load_dat_file_action = QAction("&Load .dat input", self)
-        load_dat_file_action.setStatusTip("Im am your tip")
-        load_dat_file_action.setToolTip("I am tool")
-        load_dat_file_action.setWhatsThis("Im am what")
+        load_dat_file_action.setStatusTip("Select a file containing measurements for inversion")
         load_dat_file_action.triggered.connect(self.do_inversion)
         load_dat_file_action.showStatusText(self)
 
         # create action to plot density model
         plot_density_action = QAction("Plot &density model", self)
+        plot_density_action.setStatusTip("Select a file containing density inversion to plot the model")
         plot_density_action.triggered.connect(self.plot_inversion_results)
 
         #create quit action, closes application
         quit_action = QAction("&Quit", self)
+        quit_action.setStatusTip("Leave application")
         quit_action.triggered.connect(qApp.quit)
 
         #create menubar and attach actions
@@ -52,12 +54,12 @@ class MainApp(QWidget):
         layout.addWidget(self.p)
 
         # Add statusbar that displays current information
-        self.sb = QStatusBar(self)
-        self.sb.showMessage("Select a file...")
-        layout.addWidget(self.sb)
+        self.setStatusBar(QStatusBar(self))
+        self.statusBar().showMessage("Select a file...")
 
 
-        self.setLayout(layout)
+        self.main_widget.setLayout(layout)
+        self.setCentralWidget(self.main_widget)
         self.setWindowTitle("Borehole Gravimetry Inversion")
         self.setGeometry(50, 50, 1000, 1000)
         self.center_window()
@@ -74,13 +76,13 @@ class MainApp(QWidget):
             return
         if "density" in fname.split("/")[-1]:
             QMessageBox.question(self, "Wrong file selected!", "Select a file without density in filename", QMessageBox.Ok)
-            self.sb.showMessage("Invalid file")
+            self.statusBar().showMessage("Invalid file")
             return
         self.call_inversion_function(fname)
         result_fname = fname.replace(".dat", "_density.dat")
         depth, dens = self.load_density_from_file(result_fname)
         self.p.plot(depth, dens, title="Density model", ylabel='Density (g/cm³)', linestyle='r-')
-        self.sb.showMessage("Density model for {}".format(fname))
+        self.setWindowTitle("Density model for {}".format(fname))
 
     def plot_inversion_results(self):
         fname = self.get_dat_result_filepath()
@@ -88,11 +90,11 @@ class MainApp(QWidget):
             return
         if "density" not in fname:
             QMessageBox.question(self, "Wrong file selected!", "Select a file with density in filename", QMessageBox.Ok)
-            self.sb.showMessage("Invalid file")
+            self.statusBar().showMessage("Invalid file")
             return
         depth, dens = self.load_density_from_file(fname)
         self.p.plot(depth, dens, title='Density model', ylabel='Density (g/cm³)', linestyle='r-')
-        self.sb.showMessage("Density model for {}".format(fname))
+        self.setWindowTitle("Density model for {}".format(fname))
 
     def plot_measurement_data(self):
         fname = self.get_dat_input_filepath()
@@ -100,11 +102,11 @@ class MainApp(QWidget):
             return
         if "density" in fname.split("/")[-1]:
             QMessageBox.question(self, "Wrong file selected!", "Select a file without density in filename", QMessageBox.Ok, QMessageBox.Ok)
-            self.sb.showMessage("Invalid file")
+            self.statusBar().showMessage("Invalid file")
             return
         depth, grav = self.load_density_from_file(fname)
         self.p.plot(depth, grav, title="Gravity measurement", ylabel="Gravity (mGal)", linestyle='.')
-        self.sb.showMessage("Measurement data for {}".format(fname))
+        self.setWindowTitle("Measurement data for {}".format(fname))
 
     def get_dat_input_filepath(self):
         return self.get_dat_filepath("Open .dat input file")
