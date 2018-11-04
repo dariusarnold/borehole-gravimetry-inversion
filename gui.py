@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QTextEdit, QFileDialog, QApplication
+from PyQt5.QtWidgets import QStatusBar, QMenuBar, QWidget, QDesktopWidget, QVBoxLayout, qApp, QFileDialog, QApplication, \
+    QSizePolicy, QAction, QMessageBox, QMainWindow
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -15,45 +16,103 @@ class MainApp(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        # Add button that loads input data file, does inversion and displays results
         layout = QVBoxLayout()
-        self.btn = QPushButton("Load .dat input file")
-        self.btn.clicked.connect(self.do_inversion)
-        layout.addWidget(self.btn)
 
-        # Add button that allows to select output density file to plot
-        self.btn2 = QPushButton("Select density to plot")
-        self.btn2.clicked.connect(self.plot_inversion_results)
-        layout.addWidget(self.btn2)
+        #create action to plot measurement data
+        plot_measurement_data_action = QAction("Plot &measurement data", self)
+        plot_measurement_data_action.triggered.connect(self.plot_measurement_data)
+
+        # create action to load input file for inversion and do inversion
+        load_dat_file_action = QAction("&Load .dat input", self)
+        load_dat_file_action.setStatusTip("Im am your tip")
+        load_dat_file_action.setToolTip("I am tool")
+        load_dat_file_action.setWhatsThis("Im am what")
+        load_dat_file_action.triggered.connect(self.do_inversion)
+        load_dat_file_action.showStatusText(self)
+
+        # create action to plot density model
+        plot_density_action = QAction("Plot &density model", self)
+        plot_density_action.triggered.connect(self.plot_inversion_results)
+
+        #create quit action, closes application
+        quit_action = QAction("&Quit", self)
+        quit_action.triggered.connect(qApp.quit)
+
+        #create menubar and attach actions
+        self.menubar = QMenuBar(self)
+        file_menu = self.menubar.addMenu("&File")
+        file_menu.addAction(plot_measurement_data_action)
+        file_menu.addAction(load_dat_file_action)
+        file_menu.addAction(plot_density_action)
+        file_menu.addAction(quit_action)
+        layout.addWidget(self.menubar)
 
         # Add matplotlib canvas
         self.p = PlotCanvas(self, width=8, height=6)
         layout.addWidget(self.p)
 
+        # Add statusbar that displays current information
+        self.sb = QStatusBar(self)
+        self.sb.showMessage("Select a file...")
+        layout.addWidget(self.sb)
+
+
         self.setLayout(layout)
         self.setWindowTitle("Borehole Gravimetry Inversion")
         self.setGeometry(50, 50, 1000, 1000)
+        self.center_window()
+
+    def center_window(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def do_inversion(self):
-        fname = self.get_dat_input_file()
-        #fname = fname.replace("/", "\\")
+        fname = self.get_dat_input_filepath()
+        if fname is None:
+            return
+        if "density" in fname.split("/")[-1]:
+            QMessageBox.question(self, "Wrong file selected!", "Select a file without density in filename", QMessageBox.Ok)
+            self.sb.showMessage("Invalid file")
+            return
         self.call_inversion_function(fname)
         result_fname = fname.replace(".dat", "_density.dat")
         depth, dens = self.load_density_from_file(result_fname)
-        self.p.plot(depth, dens)
+        self.p.plot(depth, dens, title="Density model", ylabel='Density (g/cm³)', linestyle='r-')
+        self.sb.showMessage("Density model for {}".format(fname))
 
     def plot_inversion_results(self):
-        fname = self.get_dat_result_file()
+        fname = self.get_dat_result_filepath()
+        if fname is None:
+            return
+        if "density" not in fname:
+            QMessageBox.question(self, "Wrong file selected!", "Select a file with density in filename", QMessageBox.Ok)
+            self.sb.showMessage("Invalid file")
+            return
         depth, dens = self.load_density_from_file(fname)
-        self.p.plot(depth, dens)
+        self.p.plot(depth, dens, title='Density model', ylabel='Density (g/cm³)', linestyle='r-')
+        self.sb.showMessage("Density model for {}".format(fname))
 
-    def get_dat_input_file(self):
-        return self.get_dat_file("Open .dat input file")
+    def plot_measurement_data(self):
+        fname = self.get_dat_input_filepath()
+        if fname is None:
+            return
+        if "density" in fname.split("/")[-1]:
+            QMessageBox.question(self, "Wrong file selected!", "Select a file without density in filename", QMessageBox.Ok, QMessageBox.Ok)
+            self.sb.showMessage("Invalid file")
+            return
+        depth, grav = self.load_density_from_file(fname)
+        self.p.plot(depth, grav, title="Gravity measurement", ylabel="Gravity (mGal)", linestyle='.')
+        self.sb.showMessage("Measurement data for {}".format(fname))
 
-    def get_dat_result_file(self):
-        return self.get_dat_file("Open .dat result file")
+    def get_dat_input_filepath(self):
+        return self.get_dat_filepath("Open .dat input file")
 
-    def get_dat_file(self, title):
+    def get_dat_result_filepath(self):
+        return self.get_dat_filepath("Open .dat result file")
+
+    def get_dat_filepath(self, title):
         dlg = QFileDialog()
         # dont allow creating new files
         dlg.setFileMode(QFileDialog.ExistingFile)
@@ -80,7 +139,7 @@ class MainApp(QWidget):
 
     def load_density_from_file(self, filepath):
         with open(filepath, 'r') as f:
-            depth, density = np.loadtxt(filepath, delimiter="\t", unpack=True)
+            depth, density = np.loadtxt(filepath, unpack=True)
         return depth, density
 
 
@@ -93,19 +152,20 @@ class PlotCanvas(FigureCanvas):
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
 
-        #FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.toolbar = NavigationToolbar(self, self)
 
-    def plot(self, depth, density):
+    def plot(self, x_values, y_values, title, ylabel, linestyle='-'):
         ax = self.figure.add_subplot(111)
         # clear previous ax content, so replotting works
         ax.clear()
-        ax.plot(depth, density, 'r-')
-        ax.set_title('Density model')
+        ax.plot(x_values, y_values, linestyle)
+        ax.set_title(title)
         ax.set_xlabel("Depth (m)")
-        ax.set_ylabel("Density (g/cm³)")
+        ax.set_ylabel(ylabel)
         self.draw()
+
 
 def main():
     app = QApplication(sys.argv)

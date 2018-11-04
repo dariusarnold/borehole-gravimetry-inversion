@@ -21,7 +21,7 @@ public:
         std::ofstream file;
         file.open(filepath);
         for (auto de = depth.begin(), da = data.begin(), e = depth.end(); de != e; ++de, ++da){
-            file << *de << "\t" << *da << "\n";
+            file << *de << " " << *da << "\n";
         }
         file.close();
     }
