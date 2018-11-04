@@ -58,6 +58,7 @@ struct Integrator{
  */
 class GravimetryInversion{
 public:
+    GravimetryInversion(uint64_t discretization_steps=10000);
 
     /**
      * Do an inversion on data read from file and save the result, a discretized density distribution
@@ -109,8 +110,8 @@ public:
      void write_density_distribution_to_file(const std::string& filepath);
 
 private:
-    const double LOWER_LIMIT = 0; // m, lower limit of integral
-    const uint32_t INTEGRAL_STEPS = 10000;  // discretization steps during integration
+    const double LOWER_LIMIT = 0;   // m, lower limit of integral
+    uint64_t discretization_steps;  // discretization steps during integration
     std::vector<MeasurementData> data;
     std::vector<Representant> representant_functions;
     Eigen::MatrixXd gram_matrix;

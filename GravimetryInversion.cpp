@@ -20,6 +20,8 @@
 #include "FileWriter.h"
 
 
+GravimetryInversion::GravimetryInversion(uint64_t discretization_steps) : discretization_steps(discretization_steps){}
+
 
 void GravimetryInversion::invert_data_from_file(const std::string &filepath) {
     GravimetryInversion mr;
@@ -79,7 +81,7 @@ void GravimetryInversion::calculate_gram_matrix() {
     // creating a new function that only takes one argument, the function to integrate
     // set maximum integration limit to the maximum measured depth
     Integrator integrate;
-    auto gram_integrate = std::bind(integrate, std::placeholders::_1, LOWER_LIMIT, data.back().depth, INTEGRAL_STEPS);
+    auto gram_integrate = std::bind(integrate, std::placeholders::_1, LOWER_LIMIT, data.back().depth, discretization_steps);
     // only unique elements in the gram matrix are the diagonal elements because of
     // g_ij = min(g_i, g_j)
     // calculate these unique elements first and fill gram matrix with them later
@@ -117,13 +119,13 @@ void GravimetryInversion::solve_alpha(){
 
 void GravimetryInversion::write_density_distribution_to_file(const std::string& filepath) {
     // fill depth vector with ascending values
-    depth_meters.reserve(GravimetryInversion::INTEGRAL_STEPS);
-    double stepsize = data.back().depth / INTEGRAL_STEPS;
-    for (std::vector<double>::size_type i = 0; i != INTEGRAL_STEPS; ++i){
+    depth_meters.reserve(discretization_steps);
+    double stepsize = data.back().depth / discretization_steps;
+    for (std::vector<double>::size_type i = 0; i != discretization_steps; ++i){
         depth_meters.emplace_back(stepsize * i);
     }
-    density.reserve(GravimetryInversion::INTEGRAL_STEPS);
-    for (int i = 0; i != INTEGRAL_STEPS; ++i){
+    density.reserve(discretization_steps);
+    for (int i = 0; i != discretization_steps; ++i){
         double dens = 0;
         for (int j = 0; j != representant_functions.size(); ++j){
             dens += alpha[j] * representant_functions[j](depth_meters[i]);
