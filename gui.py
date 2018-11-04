@@ -2,7 +2,7 @@
 
 import sys
 from PyQt5.QtWidgets import QStatusBar, QMenuBar, QWidget, QDesktopWidget, QVBoxLayout, qApp, QFileDialog, QApplication, \
-    QSizePolicy, QAction, QMessageBox, QMainWindow
+    QSizePolicy, QAction, QMessageBox, QMainWindow, QInputDialog
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -12,6 +12,7 @@ import numpy as np
 
 class MainApp(QMainWindow):
     def __init__(self, *args, **kwargs):
+        self.discretization_steps = 10000
         super(MainApp, self).__init__(*args, **kwargs)
         self.init_ui()
 
@@ -35,14 +36,21 @@ class MainApp(QMainWindow):
         plot_density_action.setStatusTip("Select a file containing density inversion to plot the model")
         plot_density_action.triggered.connect(self.plot_inversion_results)
 
-        #create quit action, closes application
+        # create quit action, closes application
         quit_action = QAction("&Quit", self)
         quit_action.setStatusTip("Leave application")
         quit_action.triggered.connect(qApp.quit)
 
+        # simple settings action asks user for number of discretization steps
+        get_steps_action = QAction("&Discretization steps", self)
+        get_steps_action.setStatusTip("Enter number of steps to use for discretization")
+        get_steps_action.triggered.connect(self.get_steps_from_user)
+
         #create menubar and attach actions
         self.menubar = QMenuBar(self)
         file_menu = self.menubar.addMenu("&File")
+        settings_menu = self.menubar.addMenu("&Settings")
+        settings_menu.addAction(get_steps_action)
         file_menu.addAction(plot_measurement_data_action)
         file_menu.addAction(load_dat_file_action)
         file_menu.addAction(plot_density_action)
@@ -107,6 +115,11 @@ class MainApp(QMainWindow):
         self.p.plot(depth, grav, "Gravity measurement", "Gravity (mGal)", 'r+', markersize=10)
         self.setWindowTitle("Measurement data for {}".format(fname))
 
+    def get_steps_from_user(self):
+        result, _ = QInputDialog.getInt(self, "Steps settings", "Enter discretization steps", value=self.discretization_steps)
+        self.discretization_steps = result
+        print(result)
+
     def get_dat_input_filepath(self):
         return self.get_dat_filepath("Open .dat input file")
 
@@ -129,14 +142,18 @@ class MainApp(QMainWindow):
     def call_inversion_function(self, filepath):
         """
         Call inversion function on file given in filepath
-        :param filepath:
-        :type filepath:
+        :param steps: Number of discretization steps that are applied to discretize the resulting density distribution.
+        :type steps: int
+        :param filepath: path to file which contains input data for inversion
+        :type filepath: str
         :return:
         :rtype:
         """
         progname = "Programm.exe" if os.name == 'nt' else "Programm"
         prog_path = os.path.join(".", "cmake-build-debug", progname)
-        os.system("{} {}".format(prog_path, filepath))
+        call_string = "{programm_path} {input_path} {discretization_steps}".format(programm_path=prog_path, input_path=filepath, discretization_steps=self.discretization_steps)
+        print(call_string)
+        os.system(call_string)
 
     def load_density_from_file(self, filepath):
         with open(filepath, 'r') as f:
