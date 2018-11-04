@@ -51,6 +51,8 @@ class MainApp(QMainWindow):
 
         # Add matplotlib canvas
         self.p = PlotCanvas(self, width=8, height=6)
+        plot_toolbar = self.p.create_toolbar(self)
+        layout.addWidget(plot_toolbar)
         layout.addWidget(self.p)
 
         # Add statusbar that displays current information
@@ -148,17 +150,20 @@ class MainApp(QMainWindow):
 class PlotCanvas(FigureCanvas):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        self.fig.set_tight_layout(True)
 
-        FigureCanvas.__init__(self, fig)
+        FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.toolbar = NavigationToolbar(self, self)
 
-    def plot(self, x_values, y_values, title, ylabel, linestyle='-'):
+    def create_toolbar(self, parent):
+        return NavigationToolbar(self, parent)
+
+    def plot(self, x_values, y_values, title, ylabel, *args, **kwargs):
         ax = self.figure.add_subplot(111)
         # clear previous ax content, so replotting works
         ax.clear()
