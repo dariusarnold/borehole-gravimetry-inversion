@@ -8,14 +8,11 @@
 void gravimetry_inversion(const std::string& filepath, uint64_t steps){
     GravimetryInversion mr(steps);
     mr.read_measurements_file(filepath);
-    //mr.print_data();
     mr.calculate_gram_matrix();
-    //mr.print_gram();
     mr.solve_alpha();
-    //mr.print_alpha();
     // find file ending
     auto s = filepath.rfind(".dat");
-    // create new string since filepath is const, append _density to file ending
+    // create new string since filepath is const, change file ending to .dens and save results
     std::string out_fname = filepath;
     out_fname.replace(s, 4, std::string(".dens"));
     mr.write_density_distribution_to_file(out_fname);

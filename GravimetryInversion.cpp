@@ -124,6 +124,8 @@ void GravimetryInversion::write_density_distribution_to_file(const std::string& 
     for (std::vector<double>::size_type i = 0; i != discretization_steps; ++i){
         depth_meters.emplace_back(stepsize * i);
     }
+    // discretize density distribution by evaluating the following formula
+    // rho(z) = sum_k alpha_k g_k(z)
     density.reserve(discretization_steps);
     for (int i = 0; i != discretization_steps; ++i){
         double dens = 0;

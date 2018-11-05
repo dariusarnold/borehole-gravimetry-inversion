@@ -10,12 +10,15 @@
 
 class FileWriter {
 public:
-    /**
-     * It is expected that T is a list of values with one value per element
-     * @tparam T
-     * @param data
-     * @return
-     */
+     /**
+      * Save depth/value pairs to file separated by a single whitespace.
+      * Every pair is then separated by a newline.
+      * No header or other data description is saved.
+      * @tparam T: T is an iterable  sequence of values
+      * @param depth
+      * @param data
+      * @param filepath
+      */
     template <typename T>
     void writeData(const T& depth, const T& data, const std::string& filepath){
         std::ofstream file;
