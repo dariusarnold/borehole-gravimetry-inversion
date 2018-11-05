@@ -139,9 +139,8 @@ class MainApp(QMainWindow):
         self.setWindowTitle("Measurement data for {}".format(fname))
 
     def get_steps_from_user(self):
-        result, _ = QInputDialog.getInt(self, "Steps settings", "Enter discretization steps", value=self.discretization_steps)
+        result, _ = QInputDialog.getInt(self, "Steps settings", "Enter discretization steps", min=1, value=self.discretization_steps)
         self.discretization_steps = result
-        print(result)
 
     def get_dat_input_filepath(self):
         return self.get_filepath("Open .dat input file", "*.dat")
