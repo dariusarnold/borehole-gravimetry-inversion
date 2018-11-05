@@ -17,7 +17,7 @@ void gravimetry_inversion(const std::string& filepath, uint64_t steps){
     auto s = filepath.rfind(".dat");
     // create new string since filepath is const, append _density to file ending
     std::string out_fname = filepath;
-    out_fname.replace(s, 4, std::string("_density.dat"));
+    out_fname.replace(s, 4, std::string(".dens"));
     mr.write_density_distribution_to_file(out_fname);
 }
 

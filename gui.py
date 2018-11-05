@@ -10,6 +10,17 @@ import os
 import numpy as np
 
 
+def get_file_ending(filepath):
+    """
+    Return file ending of given file
+    :param filepath:
+    :return:
+    """
+    filename = filepath.split(os.sep)[-1]
+    file_ending = filename.split(("."))[-1] if "." in filename else ""
+    return file_ending
+
+
 class MainApp(QMainWindow):
     def __init__(self, *args, **kwargs):
         self.discretization_steps = 10000
@@ -32,9 +43,9 @@ class MainApp(QMainWindow):
         load_dat_file_action.showStatusText(self)
 
         # create action to plot density model
-        plot_density_action = QAction("Plot &density model", self)
-        plot_density_action.setStatusTip("Select a file containing density inversion to plot the model")
-        plot_density_action.triggered.connect(self.plot_inversion_results)
+        plot_inversion_results_action = QAction("Plot &inversion result", self)
+        plot_inversion_results_action.setStatusTip("Select a file containing density inversion to plot the model")
+        plot_inversion_results_action.triggered.connect(self.plot_inversion_results)
 
         # create quit action, closes application
         quit_action = QAction("&Quit", self)
@@ -53,7 +64,7 @@ class MainApp(QMainWindow):
         settings_menu.addAction(get_steps_action)
         file_menu.addAction(plot_measurement_data_action)
         file_menu.addAction(load_dat_file_action)
-        file_menu.addAction(plot_density_action)
+        file_menu.addAction(plot_inversion_results_action)
         file_menu.addAction(quit_action)
         layout.addWidget(self.menubar)
 
@@ -81,22 +92,31 @@ class MainApp(QMainWindow):
         self.move(qr.topLeft())
 
     def do_inversion(self):
+        """
+        Complete inversion sequence with file chooser to select input data
+        """
+        # Open file dialog to get input file
         fname = self.get_dat_input_filepath()
-        if fname is None:
+        if not isinstance(fname, str):
             return
-        if "density" in fname.split("/")[-1]:
-            QMessageBox.question(self, "Wrong file selected!", "Select a file without density in filename", QMessageBox.Ok)
+        # check whether correct file was selected
+        if get_file_ending(fname) != 'dat':
+            QMessageBox.question(self, "Wrong file selected!", "Select a .dat file containing measurement data", QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
             return
         self.call_inversion_function(fname)
-        result_fname = fname.replace(".dat", "_density.dat")
+        result_fname = fname.replace(".dat", ".dens")
         self.plot_inversion_results(result_fname)
 
     def plot_inversion_results(self, fname=None):
-        if fname is None:
-            self.get_dat_result_filepath()
-        if "density" not in fname:
-            QMessageBox.question(self, "Wrong file selected!", "Select a file with density in filename", QMessageBox.Ok)
+        """
+        Plot inversion results from fname.
+        :param fname: if not given, opens dialog to let user select one
+        """
+        if not isinstance(fname, str):
+            fname = self.get_dens_result_filepath()
+        if get_file_ending(fname) != 'dens':
+            QMessageBox.question(self, "Wrong file selected!", "Select a .dens file containing inversion results", QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
             return
         depth, dens = self.load_density_from_file(fname)
@@ -104,11 +124,14 @@ class MainApp(QMainWindow):
         self.setWindowTitle("Density model for {}".format(fname))
 
     def plot_measurement_data(self):
+        """
+        Plot measurement data against depth. Data should be whitespace seperated in two columns, depth and data
+        """
         fname = self.get_dat_input_filepath()
         if fname is None:
             return
-        if "density" in fname.split("/")[-1]:
-            QMessageBox.question(self, "Wrong file selected!", "Select a file without density in filename", QMessageBox.Ok, QMessageBox.Ok)
+        if get_file_ending(fname) != 'dat':
+            QMessageBox.question(self, "Wrong file selected!", "Select a .dat file containing measurement data", QMessageBox.Ok, QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
             return
         depth, grav = self.load_density_from_file(fname)
@@ -121,18 +144,24 @@ class MainApp(QMainWindow):
         print(result)
 
     def get_dat_input_filepath(self):
-        return self.get_dat_filepath("Open .dat input file")
+        return self.get_filepath("Open .dat input file", "*.dat")
 
-    def get_dat_result_filepath(self):
-        return self.get_dat_filepath("Open .dat result file")
+    def get_dens_result_filepath(self):
+        return self.get_filepath("Open .dens result file", "*.dens")
 
-    def get_dat_filepath(self, title):
+    def get_filepath(self, filedialog_title, file_extension_filter):
+        """
+        Get filepath from user with a file chooser dialog
+        :param filedialog_title: Window title of file dialog
+        :param file_extension_filter: string restricting the files shown. Use "*.txt" to only show .txt files
+        :return: filepath selected from user
+        """
         dlg = QFileDialog()
         # dont allow creating new files
         dlg.setFileMode(QFileDialog.ExistingFile)
-        # only show dat files
-        dlg.setNameFilter("*.dat")
-        dlg.setWindowTitle(title)
+        # only show files matching the filter
+        dlg.setNameFilter(file_extension_filter)
+        dlg.setWindowTitle(filedialog_title)
         # start in directory of this script
         dlg.setDirectory(__file__.rpartition("/")[0])
         if dlg.exec_():
@@ -151,7 +180,8 @@ class MainApp(QMainWindow):
         """
         progname = "Programm.exe" if os.name == 'nt' else "Programm"
         prog_path = os.path.join(".", "cmake-build-debug", progname)
-        call_string = "{programm_path} {input_path} {discretization_steps}".format(programm_path=prog_path, input_path=filepath, discretization_steps=self.discretization_steps)
+        call_string = "{programm_path} {input_path} {discretization_steps}"
+        call_string = call_string.format(programm_path=prog_path, input_path=filepath, discretization_steps=self.discretization_steps)
         print(call_string)
         os.system(call_string)
 
