@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
+import functools
+import os
 import sys
+
+import numpy as np
 from PyQt5.QtWidgets import QStatusBar, QMenuBar, QWidget, QDesktopWidget, QVBoxLayout, qApp, QFileDialog, QApplication, \
     QSizePolicy, QAction, QMessageBox, QMainWindow, QInputDialog
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import os
-import numpy as np
-import functools
 
 
 def get_file_ending(filepath):
