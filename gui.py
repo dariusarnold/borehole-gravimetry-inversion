@@ -106,6 +106,7 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage("Invalid file")
             return
         self.call_inversion_function(fname)
+        # transform filename since the inversion program changes file endings when saving results
         result_fname = fname.replace(".dat", ".dens")
         self.plot_inversion_results(result_fname)
 
@@ -115,7 +116,10 @@ class MainApp(QMainWindow):
         :param fname: if not given, opens dialog to let user select one
         """
         if not isinstance(fname, str):
+            # if no fname was given when calling the function, get one from user
             fname = self.get_dens_result_filepath()
+            # None is returned when user pressed cancel or closed the filedialog
+            if fname is None: return
         if get_file_ending(fname) != 'dens':
             QMessageBox.question(self, "Wrong file selected!", "Select a .dens file containing inversion results", QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
@@ -129,8 +133,7 @@ class MainApp(QMainWindow):
         Plot measurement data against depth. Data should be whitespace seperated in two columns, depth and data
         """
         fname = self.get_dat_input_filepath()
-        if fname is None:
-            return
+        if fname is None: return
         if get_file_ending(fname) != 'dat':
             QMessageBox.question(self, "Wrong file selected!", "Select a .dat file containing measurement data", QMessageBox.Ok, QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
