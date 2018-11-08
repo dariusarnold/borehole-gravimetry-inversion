@@ -31,7 +31,6 @@ int main(int argc, char* argv[]) {
     if (argc > 1){
         std::string filepath = argv[1];
         uint64_t steps = atoi(argv[2]);
-        std::cout << steps << std::endl;
         // input checking of steps, if less than 0 use default value
         steps > 0 ? gravimetry_inversion(filepath, steps) : gravimetry_inversion(filepath, 10000);
         return 0;
