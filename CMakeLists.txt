@@ -3,6 +3,17 @@ project(GravityInversion)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# enable to show complite compilation commands
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+
+# set compiler warnings
+add_compile_options(-Wall -Wextra -pedantic)
+# enable optimization for release build
+if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    message("Activating optimizations (-O3) for ${CMAKE_BUILD_TYPE} build type")
+    add_compile_options(-O3)
+endif()
+
 if (WIN32)
     set(EIGEN_DIR "C:\\Eigen3")
     include_directories(${EIGEN_DIR})
