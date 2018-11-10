@@ -23,13 +23,13 @@
 GravimetryInversion::GravimetryInversion(uint64_t discretization_steps) : discretization_steps(discretization_steps){}
 
 
-void GravimetryInversion::invert_data_from_file(const std::string &filepath) {
+void GravimetryInversion::invert_data_from_file_L2_norm(const std::string &filepath) {
     GravimetryInversion mr;
     mr.read_measurements_file(filepath);
     #ifdef DEBUG
         mr.print_data();
     #endif
-    mr.calculate_gram_matrix();
+    mr.calculate_gram_matrix_L2_norm();
     #ifdef DEBUG
         mr.print_gram();
     #endif
@@ -70,26 +70,17 @@ void GravimetryInversion::print_alpha() {
 }
 
 
-void GravimetryInversion::calculate_gram_matrix() {
-    // create Representants for all data values
-    representant_functions.reserve(data.size());
-    for (auto el : data){
-        representant_functions.emplace_back(el.depth);
-    }
-
-    // create integrator and bind common arguments (limits, steps) to it,
-    // creating a new function that only takes one argument, the function to integrate
-    // set maximum integration limit to the maximum measured depth
-    Integrator integrate;
-    auto gram_integrate = std::bind(integrate, std::placeholders::_1, LOWER_LIMIT, data.back().depth, discretization_steps);
+void GravimetryInversion::calculate_gram_matrix_L2_norm() {
+    std::vector<double> gram_matrix_diag_elements;
+    gram_matrix_diag_elements.reserve(data.size());
     // only unique elements in the gram matrix are the diagonal elements because of
     // g_ij = min(g_i, g_j)
     // calculate these unique elements first and fill gram matrix with them later
-    std::vector<double> gram_matrix_diag_elements;
-    gram_matrix_diag_elements.reserve(data.size());
-
-    std::transform(representant_functions.begin(), representant_functions.end(), std::back_inserter(gram_matrix_diag_elements), [&gram_integrate](Representant r){return gram_integrate(r*r);});
-
+    // use the analytical expression for the gram matrix Gamma_jk = gamma²*min(z_j, z_k)
+    auto gram_analytical = [this](double zj, double zk){ return gamma*gamma*std::min(zj, zk); };
+    for (auto el : data){
+        gram_matrix_diag_elements.emplace_back(gram_analytical(el.depth, el.depth));
+    }
     // create matrix with as many columns/rows as data entries read from file
     // and fill it with the values from the diagonals in this pattern:
     // g11 g11 g11
@@ -129,14 +120,15 @@ void GravimetryInversion::write_density_distribution_to_file(const std::string& 
     density.reserve(discretization_steps);
     for (int i = 0; i != discretization_steps; ++i){
         double dens = 0;
-        for (int j = 0; j != representant_functions.size(); ++j){
-            dens += alpha[j] * representant_functions[j](depth_meters[i]);
+        for (int j = 0; j != alpha.size(); ++j){
+            dens += alpha[j] * heaviside(data[j].depth - depth_meters[i]);
         }
-        density.emplace_back(dens);
+        density.emplace_back(-gamma*dens);
     }
     FileWriter fw;
     fw.writeData(depth_meters, density, filepath);
 }
+
 
 
 Representant::Representant(double zj) : zj(zj) {}
@@ -145,5 +137,3 @@ Representant::Representant(double zj) : zj(zj) {}
 double Representant::operator()(double z) const{
     return -gamma * heaviside(zj -z);
 }
-
-

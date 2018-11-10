@@ -67,7 +67,7 @@ public:
      * no header, on column depth in m, one col gravity measured in mGal, tab seperated.
      * One depth/gravity pair per line
      */
-    void invert_data_from_file(const std::string& filepath);
+    void invert_data_from_file_L2_norm(const std::string& filepath);
 
 
     /**
@@ -97,7 +97,7 @@ public:
      * Calculate the gram matrix Gamma_jk = integral_0^L g_j(z) * g_k(z) dz
      * with g_j, g_z Representants
      */
-    void calculate_gram_matrix();
+    void calculate_gram_matrix_L2_norm();
 
     /**
      * Solve the equation system given by d_j = Gamma_jk alpha for vector alpha
@@ -112,13 +112,12 @@ public:
 private:
     const double LOWER_LIMIT = 0;   // m, lower limit of integral
     uint64_t discretization_steps;  // discretization steps during integration
+    const double gamma = 0.08382;
     std::vector<MeasurementData> data;
-    std::vector<Representant> representant_functions;
     Eigen::MatrixXd gram_matrix;
     std::vector<double> alpha;
     std::vector<double> density;
     std::vector<double> depth_meters;
-
 };
 
 

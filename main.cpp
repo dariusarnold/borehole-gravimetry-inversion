@@ -8,7 +8,7 @@
 void gravimetry_inversion(const std::string& filepath, uint64_t steps){
     GravimetryInversion mr(steps);
     mr.read_measurements_file(filepath);
-    mr.calculate_gram_matrix();
+    mr.calculate_gram_matrix_L2_norm();
     mr.solve_alpha();
     // find file ending
     auto s = filepath.rfind(".dat");
