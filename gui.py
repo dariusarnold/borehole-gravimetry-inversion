@@ -185,7 +185,6 @@ class MainApp(QMainWindow):
         call_string = "{programm_path} {input_path} {discretization_steps}"
         # discretzation_steps: Number of discretization steps that are applied to discretize the resulting density distribution.
         call_string = call_string.format(programm_path=prog_path, input_path=filepath, discretization_steps=self.discretization_steps)
-        print(call_string)
         os.system(call_string)
 
     def load_density_from_file(self, filepath):
