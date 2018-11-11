@@ -6,7 +6,6 @@
 #define GRAVITYINVERSION_FILEWRITER_H
 
 
-#include <fstream>
 #include <experimental/filesystem>
 #include "Result.h"
 

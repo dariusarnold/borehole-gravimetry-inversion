@@ -2,11 +2,8 @@
 #define PROGRAMM_GRAVIMETRYINVERSION_H
 
 
-#include <functional>
-#include <vector>
 #include <experimental/filesystem>
 #include <Eigen/Dense>
-#include <memory>
 
 #include "Norms.h"
 

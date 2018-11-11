@@ -5,11 +5,6 @@
 
 // standard library includes
 #include <fstream>
-#include <iostream>
-#include <algorithm>
-#include <numeric>
-#include <vector>
-#include <experimental/filesystem>
 // additional includes from installed libraries
 #include <Eigen/Dense>
 #include <Eigen/LU>
@@ -82,15 +77,16 @@ void GravimetryInversion::solve_alpha(){
 }
 
 
-void GravimetryInversion::write_density_distribution_to_file(const fs::path& filepath) {
-    FileWriter fw;
-    fw.writeData(result, filepath);
-}
-
 void GravimetryInversion::calculate_density_distribution() {
     std::vector<double> depth;
     for (auto el : data){
         depth.emplace_back(el.depth);
     }
     result = norm->calculate_density_distribution(alpha, depth, discretization_steps);
+}
+
+
+void GravimetryInversion::write_density_distribution_to_file(const fs::path& filepath) {
+    FileWriter fw;
+    fw.writeData(result, filepath);
 }

@@ -2,8 +2,6 @@
 // Created by darius on 30/10/18.
 //
 
-#include <vector>
-#include <fstream>
 #include <iostream>
 #include "MeasurementData.h"
 
