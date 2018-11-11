@@ -14,17 +14,20 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_compile_options(-O3)
 endif()
 
-if (WIN32)
-    set(EIGEN_DIR "C:\\Eigen3")
-    include_directories(${EIGEN_DIR})
-endif (WIN32)
- if (UNIX)
+# compile under windows
+if (CYGWIN)
+    set(Eigen3_DIR "C:\\Eigen3")
+    # use system directive to supress warnings from Eigen library
+    include_directories(SYSTEM "${Eigen3_DIR}")
+    link_directories(${Eigen3_DIR})
+endif (CYGWIN)
+if (UNIX AND NOT CYGWIN)
     find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-endif (UNIX)
+endif (UNIX AND NOT CYGWIN)
 
 add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h MeasurementData.cpp GravimetryInversion.h GravimetryInversion.cpp FileWriter.cpp FileWriter.h Representant.cpp Representant.h Norms.cpp Norms.h Result.cpp Result.h)
-if (UNIX)
+if (UNIX AND NOT CYGWIN)
     target_link_libraries(Programm Eigen3::Eigen)
-endif (UNIX)
+endif (UNIX AND NOT CYGWIN)
 #link library for filesystem support
 target_link_libraries(Programm stdc++fs)
