@@ -5,6 +5,9 @@
 #ifndef PROGRAMM_UTILS_H
 #define PROGRAMM_UTILS_H
 
+#include <iostream>
+
+
 /*
  * print a vector of printable elements to ostream, element for element
  */

@@ -96,6 +96,7 @@ void GravimetryInversion::calculate_gram_matrix_L2_norm() {
 
 void GravimetryInversion::solve_alpha(){
     // create eigen::vector and copy gravity measurements into it
+    // TODO find better way to create Eigen vector
     Eigen::VectorXd data_vec(data.size());
     for (vec_size_t i = 0; i < data.size(); ++i){
         data_vec(i) = data[i].grav;
@@ -129,12 +130,4 @@ void GravimetryInversion::calculate_density_distribution() {
         }
         density.emplace_back(-gamma*dens);
     }
-}
-
-
-Representant::Representant(double _zj) : zj(_zj) {}
-
-
-double Representant::operator()(double z) const{
-    return -gamma * heaviside(zj -z);
 }
