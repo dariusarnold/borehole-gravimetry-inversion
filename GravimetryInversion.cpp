@@ -20,7 +20,13 @@
 #include "FileWriter.h"
 
 
-GravimetryInversion::GravimetryInversion(uint64_t discretization_steps) : discretization_steps(discretization_steps){}
+GravimetryInversion::GravimetryInversion(uint64_t _discretization_steps) :
+        discretization_steps(_discretization_steps),
+        data(),
+        gram_matrix(),
+        alpha(),
+        density(),
+        depth_meters(){}
 
 
 void GravimetryInversion::invert_data_from_file_L2_norm(const std::string &filepath) {
@@ -87,8 +93,8 @@ void GravimetryInversion::calculate_gram_matrix_L2_norm() {
     // g11 g22 g22
     // g11 g22 g33
     gram_matrix.resize(data.size(), data.size());
-    for (int column_index = 0; column_index < data.size(); ++column_index){
-        for (int row_index = 0; row_index < data.size(); ++row_index){
+    for (vec_size_t column_index = 0; column_index < data.size(); ++column_index){
+        for (vec_size_t row_index = 0; row_index < data.size(); ++row_index){
             gram_matrix(row_index, column_index) = gram_matrix_diag_elements[std::min(row_index, column_index)];
         }
     }
@@ -98,7 +104,7 @@ void GravimetryInversion::calculate_gram_matrix_L2_norm() {
 void GravimetryInversion::solve_alpha(){
     // create eigen::vector and copy gravity measurements into it
     Eigen::VectorXd data_vec(data.size());
-    for (int i = 0; i < data.size(); ++i){
+    for (vec_size_t i = 0; i < data.size(); ++i){
         data_vec(i) = data[i].grav;
     }
     // use Eigen to solve the matrix equation
@@ -112,15 +118,15 @@ void GravimetryInversion::write_density_distribution_to_file(const std::string& 
     // fill depth vector with ascending values
     depth_meters.reserve(discretization_steps);
     double stepsize = data.back().depth / discretization_steps;
-    for (std::vector<double>::size_type i = 0; i != discretization_steps; ++i){
+    for (vec_size_t i = 0; i != discretization_steps; ++i){
         depth_meters.emplace_back(stepsize * i);
     }
     // discretize density distribution by evaluating the following formula
     // rho(z) = sum_k alpha_k g_k(z)
     density.reserve(discretization_steps);
-    for (int i = 0; i != discretization_steps; ++i){
+    for (vec_size_t i = 0; i != discretization_steps; ++i){
         double dens = 0;
-        for (int j = 0; j != alpha.size(); ++j){
+        for (vec_size_t j = 0; j != alpha.size(); ++j){
             dens += alpha[j] * heaviside(data[j].depth - depth_meters[i]);
         }
         density.emplace_back(-gamma*dens);
@@ -130,8 +136,7 @@ void GravimetryInversion::write_density_distribution_to_file(const std::string& 
 }
 
 
-
-Representant::Representant(double zj) : zj(zj) {}
+Representant::Representant(double _zj) : zj(_zj) {}
 
 
 double Representant::operator()(double z) const{

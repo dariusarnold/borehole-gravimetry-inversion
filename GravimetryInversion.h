@@ -20,13 +20,13 @@ struct Representant{
 /**
  * Multiply two Representants a and b, returns a function that evaluates the multiplication.
  * Eg. a * b results in a new function, that can be used to evaluate a * b at any point
- * @param a Representant
- * @param b Representant
+ * @param func1 Representant
+ * @param func2 Representant
  * @return function objects used to evaluate the result of a*b
  */
  template <typename Callable>
-std::function<double(double)> operator*(const Callable& a, const Callable& b){
-    return [&a, &b](double arg) { return a(arg) * b(arg);};
+std::function<double(double)> operator*(const Callable& func1, const Callable& func2){
+    return [&func1, &func2](double arg) { return func1(arg) * func2(arg);};
 }
 
 /**
@@ -53,6 +53,10 @@ struct Integrator{
 };
 
 
+// set type for iterating over vectors from GravimetryInversion
+typedef std::vector<double>::size_type vec_size_t;
+
+
 /**
  * Class to perform a gravimetry inversion on borehole data.
  */
@@ -64,8 +68,8 @@ public:
      * Do an inversion on data read from file and save the result, a discretized density distribution
      * in a file in the same path were data was read from.
      * @param filepath Path to file containing data in the following format:
-     * no header, on column depth in m, one col gravity measured in mGal, tab seperated.
-     * One depth/gravity pair per line
+     * no header, on column depth in meter, one col gravity measured in mGal, tab separated.
+     * One depth/gravity pair per line, line ending \n
      */
     void invert_data_from_file_L2_norm(const std::string& filepath);
 
@@ -103,6 +107,8 @@ public:
      * Solve the equation system given by d_j = Gamma_jk alpha for vector alpha
      */
      void solve_alpha();
+
+     void calculate_density_distribution();
 
      /**
       * Discretize density distribution and save it to .txt file

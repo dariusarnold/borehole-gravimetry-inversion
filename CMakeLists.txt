@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # set compiler warnings
-add_compile_options(-Wall -Wextra -pedantic)
+add_compile_options(-Wall -Wextra -pedantic -Weffc++ -Wshadow)
 # enable optimization for release build
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     message("Activating optimizations (-O3) for ${CMAKE_BUILD_TYPE} build type")
