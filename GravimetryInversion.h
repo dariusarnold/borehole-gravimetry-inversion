@@ -11,6 +11,7 @@
 // set type for iterating over vectors from GravimetryInversion
 typedef std::vector<double>::size_type vec_size_t;
 
+namespace fs = std::experimental::filesystem;
 
 /**
  * Class to perform a gravimetry inversion on borehole data.
@@ -26,7 +27,7 @@ public:
      * no header, on column depth in meter, one col gravity measured in mGal, tab separated.
      * One depth/gravity pair per line, line ending \n
      */
-    static void invert_data_from_file_L2_norm(std::experimental::filesystem::path &filepath, uint64_t steps);
+    static void invert_data_from_file_L2_norm(fs::path &filepath, uint64_t steps);
 
 
     /**
@@ -35,7 +36,7 @@ public:
      * @param filepath
      * @return Vector holding MeasurementData objects, which represent one row from the file
      */
-    void read_measurements_file(const std::string& filepath);
+    void read_measurements_file(const fs::path& filepath);
 
     /*
     * print a vector of printable elements to ostream
@@ -68,7 +69,7 @@ public:
      /**
       * Discretize density distribution and save it to .txt file
       */
-     void write_density_distribution_to_file(const std::string& filepath);
+     void write_density_distribution_to_file(const fs::path& filepath);
 
 private:
     const double LOWER_LIMIT = 0;   // m, lower limit of integral

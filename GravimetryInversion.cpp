@@ -29,7 +29,7 @@ GravimetryInversion::GravimetryInversion(uint64_t _discretization_steps) :
         depth_meters(){}
 
 
-void GravimetryInversion::invert_data_from_file_L2_norm(std::experimental::filesystem::path &filepath, uint64_t steps) {
+void GravimetryInversion::invert_data_from_file_L2_norm(fs::path &filepath, uint64_t steps) {
     GravimetryInversion mr(steps);
     mr.read_measurements_file(filepath);
     mr.calculate_gram_matrix_L2_norm();
@@ -40,7 +40,7 @@ void GravimetryInversion::invert_data_from_file_L2_norm(std::experimental::files
 }
 
 
-void GravimetryInversion::read_measurements_file(const std::string& filepath) {
+void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
     std::ifstream matrixFile(filepath);
     std::vector<MeasurementData> output;
     if (matrixFile.is_open()){
@@ -108,7 +108,7 @@ void GravimetryInversion::solve_alpha(){
 }
 
 
-void GravimetryInversion::write_density_distribution_to_file(const std::string& filepath) {
+void GravimetryInversion::write_density_distribution_to_file(const fs::path& filepath) {
     FileWriter fw;
     fw.writeData(depth_meters, density, filepath);
 }

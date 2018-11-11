@@ -6,7 +6,7 @@
 
 
 
-
+namespace fs = std::experimental::filesystem;
 
 
 /**
@@ -19,8 +19,8 @@
  */
 int main(int argc, char* argv[]) {
     if (argc > 1){
-        std::experimental::filesystem::path filepath{argv[1]};
-        //std::string filepath = argv[1];
+        // read command line parameters
+        fs::path filepath{argv[1]};
         uint64_t steps = std::stoul(argv[2]);
         // input checking of steps, if less than 0 use default value
         steps > 0 ? GravimetryInversion::invert_data_from_file_L2_norm(filepath, steps) : GravimetryInversion::invert_data_from_file_L2_norm(filepath, 10000);

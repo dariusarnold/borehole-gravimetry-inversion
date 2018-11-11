@@ -7,6 +7,10 @@
 
 
 #include <fstream>
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
+
 
 class FileWriter {
 public:
@@ -20,7 +24,7 @@ public:
       * @param filepath
       */
     template <typename T>
-    void writeData(const T& depth, const T& data, const std::string& filepath){
+    void writeData(const T& depth, const T& data, const fs::path& filepath){
         std::ofstream file;
         file.open(filepath);
         for (auto de = depth.begin(), da = data.begin(), e = depth.end(); de != e; ++de, ++da){
