@@ -9,10 +9,10 @@
 
 
 /**
- * Representant function with the form of a step function
+ * Representant function for the L2 norm with the form of a step function
  */
-struct Representant{
-    explicit Representant(double zj);
+struct Representant_L2_Norm{
+    explicit Representant_L2_Norm(double zj);
     double zj;      // depth of step in meters
     const double gamma = 0.08382; //mGal * cm³ / (m g)
     double operator()(double z) const;  // calculate value of Representant at depth z
@@ -37,6 +37,7 @@ std::function<double(double)> operator*(const Callable& func1, const Callable& f
  * @param func2
  * @return
  */
+ template <typename Representant>
 std::function<double(double)> operator+(const Representant& func1, const Representant& func2);
 
 

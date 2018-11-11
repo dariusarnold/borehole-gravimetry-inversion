@@ -3,7 +3,7 @@
 
 #include "MeasurementData.h"
 #include "GravimetryInversion.h"
-
+#include "Norms.h"
 
 
 namespace fs = std::experimental::filesystem;
@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
         fs::path filepath{argv[1]};
         uint64_t steps = std::stoul(argv[2]);
         // input checking of steps, if less than 0 use default value
-        steps > 0 ? GravimetryInversion::invert_data_from_file_L2_norm(filepath, steps) : GravimetryInversion::invert_data_from_file_L2_norm(filepath, 10000);
+        steps > 0 ? GravimetryInversion::invert_data_from_file<L2_Norm>(filepath, steps) : GravimetryInversion::invert_data_from_file<L2_Norm>(filepath, 10000);
         return 0;
     }else {
         std::cout << "Call programm with positional arguments:\n"

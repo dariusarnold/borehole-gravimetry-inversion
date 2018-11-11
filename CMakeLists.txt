@@ -22,7 +22,7 @@ endif (WIN32)
     find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 endif (UNIX)
 
-add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h MeasurementData.cpp GravimetryInversion.h GravimetryInversion.cpp FileWriter.cpp FileWriter.h Representant.cpp Representant.h)
+add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h MeasurementData.cpp GravimetryInversion.h GravimetryInversion.cpp FileWriter.cpp FileWriter.h Representant.cpp Representant.h Norms.cpp Norms.h Result.cpp Result.h)
 if (UNIX)
     target_link_libraries(Programm Eigen3::Eigen)
 endif (UNIX)

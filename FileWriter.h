@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include <experimental/filesystem>
+#include "Result.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -18,20 +19,10 @@ public:
       * Save depth/value pairs to file separated by a single whitespace.
       * Every pair is then separated by a newline.
       * No header or other data description is saved.
-      * @tparam T: T is an iterable  sequence of values
-      * @param depth
-      * @param data
+      * @param result Vector of Results structs, containing depth/density pairs
       * @param filepath
       */
-    template <typename T>
-    void writeData(const T& depth, const T& data, const fs::path& filepath){
-        std::ofstream file;
-        file.open(filepath);
-        for (auto de = depth.begin(), da = data.begin(), e = depth.end(); de != e; ++de, ++da){
-            file << *de << " " << *da << "\n";
-        }
-        file.close();
-    }
+    void writeData(const std::vector<Result>& result, const fs::path& filepath);
 };
 
 #endif //GRAVITYINVERSION_FILEWRITER_H

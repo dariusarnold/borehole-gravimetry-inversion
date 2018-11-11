@@ -6,6 +6,9 @@
 #include <vector>
 #include <experimental/filesystem>
 #include <Eigen/Dense>
+#include <memory>
+
+#include "Norms.h"
 
 
 // set type for iterating over vectors from GravimetryInversion
@@ -18,16 +21,34 @@ namespace fs = std::experimental::filesystem;
  */
 class GravimetryInversion{
 public:
-    GravimetryInversion(uint64_t discretization_steps=10000);
+    /**
+     * Constructor that takes a pointer to the norm which should be used.
+     * Depending on the norm, the analytical solution for the Gram matrix and the way
+     * to calculate the density distribution changes.
+     * @param _norm Pointer to norm to use. Norm knows how to calculate Gram matrix and density
+     * @param _discretization_steps number of discretization steps to use for density
+     */
+    GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _discretization_steps=10000);
+
 
     /**
-     * Do an inversion on data read from file and save the result, a discretized density distribution
-     * in a file in the same path were data was read from.
+     * Do an inversion using the norm type given as a template on data read from file and save the result,
+     * a discretized density distribution in a file in the same path were data was read from.
      * @param filepath Path to file containing data in the following format:
      * no header, on column depth in meter, one col gravity measured in mGal, tab separated.
      * One depth/gravity pair per line, line ending \n
+     * @param steps Number of discretization steps to use for density distribution
      */
-    static void invert_data_from_file_L2_norm(fs::path &filepath, uint64_t steps);
+    template <typename Norm_Type>
+    static void invert_data_from_file(fs::path &filepath, uint64_t steps) {
+        GravimetryInversion mr(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
+        mr.read_measurements_file(filepath);
+        mr.calculate_gram_matrix();
+        mr.solve_alpha();
+        mr.calculate_density_distribution();
+        filepath.replace_extension({".dens"});
+        mr.write_density_distribution_to_file(filepath);
+    }
 
 
     /**
@@ -54,10 +75,9 @@ public:
      void print_alpha();
 
     /**
-     * Calculate the gram matrix Gamma_jk = integral_0^L g_j(z) * g_k(z) dz
-     * with g_j, g_z Representants
+     * Calculate the gram matrix
      */
-    void calculate_gram_matrix_L2_norm();
+    void calculate_gram_matrix();
 
     /**
      * Solve the equation system given by d_j = Gamma_jk alpha for vector alpha
@@ -72,14 +92,13 @@ public:
      void write_density_distribution_to_file(const fs::path& filepath);
 
 private:
-    const double LOWER_LIMIT = 0;   // m, lower limit of integral
+    std::unique_ptr<Norm> norm;
     uint64_t discretization_steps;  // discretization steps during integration
     const double gamma = 0.08382;
     std::vector<MeasurementData> data;
     Eigen::MatrixXd gram_matrix;
     std::vector<double> alpha;
-    std::vector<double> density;
-    std::vector<double> depth_meters;
+    std::vector<Result> result;
 };
 
 
