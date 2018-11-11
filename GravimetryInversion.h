@@ -91,7 +91,6 @@ public:
 private:
     std::unique_ptr<Norm> norm;
     uint64_t discretization_steps;  // discretization steps during integration
-    const double gamma = 0.08382;
     std::vector<MeasurementData> data;
     Eigen::MatrixXd gram_matrix;
     std::vector<double> alpha;
