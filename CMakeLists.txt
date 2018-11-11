@@ -26,3 +26,5 @@ add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h Measurement
 if (UNIX)
     target_link_libraries(Programm Eigen3::Eigen)
 endif (UNIX)
+#link library for filesystem support
+target_link_libraries(Programm stdc++fs)

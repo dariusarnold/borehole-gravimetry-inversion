@@ -4,7 +4,7 @@
 
 #include <functional>
 #include <vector>
-
+#include <experimental/filesystem>
 #include <Eigen/Dense>
 
 /**
@@ -71,7 +71,7 @@ public:
      * no header, on column depth in meter, one col gravity measured in mGal, tab separated.
      * One depth/gravity pair per line, line ending \n
      */
-    void invert_data_from_file_L2_norm(const std::string& filepath);
+    static void invert_data_from_file_L2_norm(std::experimental::filesystem::path &filepath, uint64_t steps);
 
 
     /**

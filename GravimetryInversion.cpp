@@ -2,7 +2,6 @@
 // Class to perform a gravimetry inversion
 //
 
-#define DEBUG 1
 
 // standard library includes
 #include <fstream>
@@ -10,6 +9,7 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
+#include <experimental/filesystem>
 // additional includes from installed libraries
 #include <Eigen/Dense>
 #include <Eigen/LU>
@@ -29,20 +29,13 @@ GravimetryInversion::GravimetryInversion(uint64_t _discretization_steps) :
         depth_meters(){}
 
 
-void GravimetryInversion::invert_data_from_file_L2_norm(const std::string &filepath) {
-    GravimetryInversion mr;
+void GravimetryInversion::invert_data_from_file_L2_norm(std::experimental::filesystem::path &filepath, uint64_t steps) {
+    GravimetryInversion mr(steps);
     mr.read_measurements_file(filepath);
-    #ifdef DEBUG
-        mr.print_data();
-    #endif
     mr.calculate_gram_matrix_L2_norm();
-    #ifdef DEBUG
-        mr.print_gram();
-    #endif
     mr.solve_alpha();
-    #ifdef DEBUG
-        mr.print_alpha();
-    #endif
+    mr.calculate_density_distribution();
+    filepath.replace_extension({".dens"});
     mr.write_density_distribution_to_file(filepath);
 }
 
@@ -115,6 +108,11 @@ void GravimetryInversion::solve_alpha(){
 
 
 void GravimetryInversion::write_density_distribution_to_file(const std::string& filepath) {
+    FileWriter fw;
+    fw.writeData(depth_meters, density, filepath);
+}
+
+void GravimetryInversion::calculate_density_distribution() {
     // fill depth vector with ascending values
     depth_meters.reserve(discretization_steps);
     double stepsize = data.back().depth / discretization_steps;
@@ -131,8 +129,6 @@ void GravimetryInversion::write_density_distribution_to_file(const std::string& 
         }
         density.emplace_back(-gamma*dens);
     }
-    FileWriter fw;
-    fw.writeData(depth_meters, density, filepath);
 }
 
 
