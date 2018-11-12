@@ -12,15 +12,12 @@
 struct Norm {
     Norm() = default;
     virtual ~Norm() = default;
-
     /**
      * Calculate gram matrix analytically. Derived classes have to implement gram_entry_analytical
      * @param depth Vector containing measurement depth values in m
      * @return Gram matrix
      */
-    Eigen::MatrixXd gram_matrix_analytical(const std::vector<double>& depth);
-
-
+    virtual Eigen::MatrixXd gram_matrix_analytical(const std::vector<double>& depth);
     /**
      * Evaluate alpha and representants to discretize a density distribution
      * @param alpha Vector of coefficients alpha
@@ -28,8 +25,17 @@ struct Norm {
      * @param num_steps Number of steps to use for discretizing density distribution
      * @return
      */
-    std::vector<Result>  calculate_density_distribution(const std::vector<double>& alpha, const std::vector<double>& depth, uint64_t num_steps);
-
+    virtual std::vector<Result>  calculate_density_distribution(const std::vector<double>& alpha, const std::vector<double>& depth, uint64_t num_steps);
+    /**
+     * Calculate the coefficients alpha by solving the system of equations given as:
+     * \vec{d} = \Gamma \vec{\alpha}}
+     * This solves it appropiately in the default case, if a norm modifies the data vector,
+     * it will have to override this function to implement it
+     * @param data
+     * @param gram_matrix
+     * @return
+     */
+    virtual std::vector<double> solve_for_alpha(const std::vector<double>& data, const Eigen::MatrixXd& gram_matrix);
 protected:
     /**
      * Calculate a single entry (row index j, column index k) of the Gram matrix
@@ -67,6 +73,30 @@ struct W12_Norm : public Norm{
 
     double gram_entry_analytical(double zj, double zk) override;
     double representant_function(double zj, double z) override;
+};
+
+
+struct Seminorm : public Norm{
+    Seminorm() = default;
+    ~Seminorm() override = default;
+
+    /**
+     * Override base class since gram matrix is build differently
+     * @param depth
+     * @return
+     */
+    Eigen::MatrixXd gram_matrix_analytical(const std::vector<double>& depth) override;
+    double gram_entry_analytical(double zj, double zk) override;
+    double representant_function(double zj, double z) override;
+    /**
+     * Override solving the linear equation system since data vector has to be modified before solving
+     * @param data
+     * @param gram_matrix
+     * @return
+     */
+    std::vector<double> solve_for_alpha(const std::vector<double> &data, const Eigen::MatrixXd &gram_matrix) override;
+
+    std::vector<Result>  calculate_density_distribution(const std::vector<double>& alpha, const std::vector<double>& depth, uint64_t num_steps);
 };
 
 

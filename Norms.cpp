@@ -44,6 +44,16 @@ std::vector<Result> Norm::calculate_density_distribution(const std::vector<doubl
 }
 
 
+std::vector<double> Norm::solve_for_alpha(const std::vector<double> &data, const Eigen::MatrixXd &gram_matrix) {
+    // initialize eigen::vector from std::vectors data containing measurement results corrected for free air gradient
+    Eigen::Map<const Eigen::VectorXd> data_vec(data.data(), data.size());
+    // use Eigen to solve the matrix equation
+    Eigen::VectorXd alpha_eigen = gram_matrix.colPivHouseholderQr().solve(data_vec);
+    //convert result from Eigen type to std::vector and return it
+    return std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+}
+
+
 double L2_Norm::gram_entry_analytical(double zj, double zk) {
     return gamma*gamma*std::min(zj, zk);
 }
@@ -64,3 +74,53 @@ double W12_Norm::gram_entry_analytical(double zj, double zk) {
 double W12_Norm::representant_function(double zj, double z) {
     return gamma/2. * (zj - z) * (zj - z) * heaviside(zj-z) - gamma * (zj + 1./2. * zj*zj);
 }
+
+
+double Seminorm::gram_entry_analytical(double zj, double zk) {
+    double zmin = std::min(zj, zk);
+    double gamma_square = gamma*gamma;
+    return gamma_square*zj*zk + gamma_square*(1./3. * std::pow(zmin, 3) - 1./2. * std::pow(zmin, 2) * (zj+zk) + zmin*zj*zk);
+}
+
+
+
+double Seminorm::representant_function(double zj, double z) {
+    return gamma/2. * (zj - z) * (zj - z) * heaviside(zj-z) - gamma * (zj + 1./2. * zj*zj);
+}
+
+
+Eigen::MatrixXd Seminorm::gram_matrix_analytical(const std::vector<double> &depth) {
+    // get top left gram matrix, containing Gamma_jk
+    Eigen::MatrixXd gram_matrix = Norm::gram_matrix_analytical(depth);
+    // calculate the additional data given as (gj, 1)
+    Eigen::VectorXd additional(gram_matrix.cols()+1);
+    for (size_t i = 0; i < depth.size(); ++i){
+        additional(i) = -gamma*depth[i];
+    }
+    additional(additional.size()-1) = 0.;
+    // add one more row and column to the matrix
+    gram_matrix.conservativeResize(gram_matrix.rows()+1, gram_matrix.cols()+1);
+    // fill additional space, Gram matrix is symmetrical so the same vector is inserted twice
+    gram_matrix.rightCols(1) = additional;
+    gram_matrix.bottomRows(1) = additional.transpose();
+    return gram_matrix;
+}
+
+
+std::vector<double> Seminorm::solve_for_alpha(const std::vector<double> &data, const Eigen::MatrixXd &gram_matrix) {
+    // extend data by the additional constant 0
+    auto data_extended = data;
+    data_extended.emplace_back(0.);
+    return Norm::solve_for_alpha(data_extended, gram_matrix);;
+
+}
+
+std::vector<Result>
+Seminorm::calculate_density_distribution(const std::vector<double> &alpha, const std::vector<double> &depth, uint64_t num_steps) {
+    std::vector<Result> density_variable = Norm::calculate_density_distribution(alpha, depth, num_steps);
+    auto density_constant = alpha.back();
+    std::for_each(density_variable.begin(), density_variable.end(), [density_constant](Result& x){x.density +=density_constant; });
+    return density_variable;
+}
+
+

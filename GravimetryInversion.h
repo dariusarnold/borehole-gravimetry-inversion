@@ -25,7 +25,7 @@ public:
      * @param _norm Pointer to norm to use. Norm knows how to calculate Gram matrix and density
      * @param _discretization_steps number of discretization steps to use for density
      */
-    GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _discretization_steps=10000);
+    explicit GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _discretization_steps=10000);
 
 
     /**
@@ -56,21 +56,6 @@ public:
      */
     void read_measurements_file(const fs::path& filepath);
 
-    /*
-    * print a vector of printable elements to ostream
-    */
-    void print_data();
-
-    /**
-     * print gram matrix to cout
-     */
-     void print_gram();
-
-     /**
-      * Print coefficients of alpha to cout
-      */
-     void print_alpha();
-
     /**
      * Calculate the gram matrix
      */
@@ -81,6 +66,9 @@ public:
      */
      void solve_alpha();
 
+     /**
+      * Calculate density distribution from the representants and the alpha coefficients.
+      */
      void calculate_density_distribution();
 
      /**
@@ -90,11 +78,12 @@ public:
 
 private:
     std::unique_ptr<Norm> norm;
-    uint64_t discretization_steps;  // discretization steps during integration
-    std::vector<MeasurementData> data;
-    Eigen::MatrixXd gram_matrix;
+    uint64_t discretization_steps;          // discretization steps during integration
+    std::vector<double> measurement_depths; // holds measurement depths read from file
+    std::vector<double> measurement_data;   // holds measurement data (gravity acceleration) read from file
+    Eigen::MatrixXd gram_matrix;            //
     std::vector<double> alpha;
-    std::vector<Result> result;
+    std::vector<Result> result;             // holds depth/density distribution resulting from inversion
 };
 
 

@@ -19,7 +19,8 @@
 GravimetryInversion::GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _discretization_steps) :
         norm(std::move(_norm)),
         discretization_steps(_discretization_steps),
-        data(),
+        measurement_depths(),
+        measurement_data(),
         gram_matrix(),
         alpha(),
         result(){}
@@ -27,62 +28,29 @@ GravimetryInversion::GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _
 
 void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
     std::ifstream matrixFile(filepath);
-    std::vector<MeasurementData> output;
     if (matrixFile.is_open()){
         MeasurementData row;
         while (matrixFile >> row) {
-            output.push_back(row);
+            measurement_depths.push_back(row.depth);
+            measurement_data.push_back(row.grav);
         }
     }
     matrixFile.close();
-    data = output;
-}
-
-
-void GravimetryInversion::print_data(){
-    std::cout << data;
-}
-
-
-void GravimetryInversion::print_gram() {
-    std::cout << gram_matrix << std::endl;
-}
-
-
-void GravimetryInversion::print_alpha() {
-    std::cout << alpha << std::endl;
 }
 
 
 void GravimetryInversion::calculate_gram_matrix() {
-    std::vector<double> depth;
-    for (auto el : data){
-        depth.emplace_back(el.depth);
-    }
-    gram_matrix = norm->gram_matrix_analytical(depth);
+    gram_matrix = norm->gram_matrix_analytical(measurement_depths);
 }
 
 
 void GravimetryInversion::solve_alpha(){
-    // create eigen::vector and copy gravity measurements into it
-    // TODO find better way to create Eigen vector
-    Eigen::VectorXd data_vec(data.size());
-    for (vec_size_t i = 0; i < data.size(); ++i){
-        data_vec(i) = data[i].grav;
-    }
-    // use Eigen to solve the matrix equation
-    Eigen::VectorXd alpha_eigen = gram_matrix.colPivHouseholderQr().solve(data_vec);
-    //convert result from Eigen type to std::vector
-    alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+    alpha = norm->solve_for_alpha(measurement_data, gram_matrix);
 }
 
 
 void GravimetryInversion::calculate_density_distribution() {
-    std::vector<double> depth;
-    for (auto el : data){
-        depth.emplace_back(el.depth);
-    }
-    result = norm->calculate_density_distribution(alpha, depth, discretization_steps);
+    result = norm->calculate_density_distribution(alpha, measurement_depths, discretization_steps);
 }
 
 
