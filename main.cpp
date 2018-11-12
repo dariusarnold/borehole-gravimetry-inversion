@@ -4,7 +4,7 @@
 #include "MeasurementData.h"
 #include "GravimetryInversion.h"
 #include "Norms.h"
-
+#include <Eigen/Dense>
 
 namespace fs = std::experimental::filesystem;
 
@@ -18,17 +18,32 @@ namespace fs = std::experimental::filesystem;
  * @return
  */
 int main(int argc, char* argv[]) {
-    if (argc > 1){
+    if (argc != 4) {
+        std::cout << "Call programm with positional arguments:\n"
+                  << "1. input measurement data filepath\n"
+                  << "2. number of discretization steps\n"
+                  << "3. Id of norm: L2 (0), W12 (1), Semi (2)"
+                  << std::endl;
+        return -1;
+    }
+    else{
         // read command line parameters
         fs::path filepath{argv[1]};
         uint64_t steps = std::stoul(argv[2]);
-        // input checking of steps, if less than 0 use default value
-        steps > 0 ? GravimetryInversion::invert_data_from_file<L2_Norm>(filepath, steps) : GravimetryInversion::invert_data_from_file<L2_Norm>(filepath, 10000);
+        switch (atoi(argv[3])){
+            case 0:
+                GravimetryInversion::invert_data_from_file<L2_Norm>(filepath, steps);
+                break;
+            case 1:
+                GravimetryInversion::invert_data_from_file<W12_Norm>(filepath, steps);
+                break;
+            case 2:
+                GravimetryInversion::invert_data_from_file<Seminorm>(filepath, steps);
+                break;
+            default:
+                std::cout << "Enter valid norm id" << std::endl;
+                return -1;
+        }
         return 0;
-    }else {
-        std::cout << "Call programm with positional arguments:\n"
-                  << "1. input measurement data filepath\n"
-                  << "2. number of discretization steps" << std::endl;
-        return -1;
     }
 }
