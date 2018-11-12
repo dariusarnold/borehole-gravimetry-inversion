@@ -26,7 +26,8 @@ std::vector<Result> Norm::calculate_density_distribution(const std::vector<doubl
     std::vector<double>  depth_meters;
     depth_meters.reserve(num_steps);
     double stepsize = depth.back() / num_steps;
-    for (size_t i = 0; i != num_steps; ++i){
+    // num_steps + 2 to get one step past the end to see the L2 norm falling to zero
+    for (size_t i = 0; i != num_steps+2; ++i){
         depth_meters.emplace_back(stepsize * i);
     }
     // discretize density distribution by evaluating the following formula
