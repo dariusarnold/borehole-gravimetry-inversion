@@ -6,7 +6,7 @@ import sys
 
 import numpy as np
 from PyQt5.QtWidgets import QStatusBar, QMenuBar, QWidget, QDesktopWidget, QVBoxLayout, qApp, QFileDialog, QApplication, \
-    QSizePolicy, QAction, QMessageBox, QMainWindow, QInputDialog
+    QSizePolicy, QAction, QMessageBox, QMainWindow, QInputDialog, QWhatsThis
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -32,47 +32,68 @@ class MainApp(QMainWindow):
     def init_ui(self):
         layout = QVBoxLayout()
         self.main_widget = QWidget(self)
+        self.main_widget.setWhatsThis("Matplotlib-like plotting area")
 
         #create action to plot measurement data
         plot_measurement_data_action = QAction("Plot &measurement data", self)
         plot_measurement_data_action.setStatusTip("Select a file containing measurements to plot them")
+        plot_measurement_data_action.setWhatsThis("Plot measurement data from file into the plotting area.")
         plot_measurement_data_action.triggered.connect(self.plot_measurement_data)
 
         # create action to load input file for inversion and do inversion
-        load_dat_file_action = QAction("&Invert for density model", self)
+        load_dat_file_action = QAction("&Invert for density model and save+plot result", self)
         load_dat_file_action.setStatusTip("Select a file containing measurements for inversion")
+        load_dat_file_action.setWhatsThis("Select a .dat file to invert the measurement results into a density model. Results will be shown in the plotting area. Toolbar at the top of the plotting area is used to manipulate the plot.")
         load_dat_file_action.triggered.connect(self.do_inversion)
         load_dat_file_action.showStatusText(self)
 
         # create action to plot density model
-        plot_inversion_results_action = QAction("Plot &inversion result", self)
+        plot_inversion_results_action = QAction("Plot &inversion result from file", self)
         plot_inversion_results_action.setStatusTip("Select a file containing density inversion to plot the model")
+        plot_inversion_results_action.setWhatsThis("Select a .dens file to plot the density model from a previous inversion")
         plot_inversion_results_action.triggered.connect(functools.partial(self.plot_inversion_results, None))
 
         # create quit action, closes application
         quit_action = QAction("&Quit", self)
         quit_action.setStatusTip("Leave application")
+        quit_action.setWhatsThis("Goodbye")
         quit_action.triggered.connect(qApp.quit)
 
         # simple settings action asks user for number of discretization steps
         get_steps_action = QAction("&Discretization steps", self)
-        get_steps_action.setStatusTip("Enter number of steps to use for discretization")
+        get_steps_action.setStatusTip("Enter number of points to use for discretization")
+        get_steps_action.setWhatsThis("Set the number of points used to discretize the density function.")
         get_steps_action.triggered.connect(self.get_steps_from_user)
+
+        # settings action that asks the user which norm to use
+        get_norm_action = QAction("&Select norm", self)
+        get_norm_action.setStatusTip("Select a norm to use for the inversion")
+        get_norm_action.setWhatsThis("Select a norm that is used for the inversion. Different norms influence the resulting model differently.")
+        get_norm_action.triggered.connect(self.get_norm_from_user)
+
+        # create help action that explains user interface elements
+        help_action = QWhatsThis.createAction(self)
+        help_action.setStatusTip("Get info about components of this program")
+        help_action.triggered.connect(QWhatsThis.enterWhatsThisMode)
 
         #create menubar and attach actions
         self.menubar = QMenuBar(self)
         file_menu = self.menubar.addMenu("&File")
-        settings_menu = self.menubar.addMenu("&Settings")
-        settings_menu.addAction(get_steps_action)
         file_menu.addAction(plot_measurement_data_action)
         file_menu.addAction(load_dat_file_action)
         file_menu.addAction(plot_inversion_results_action)
         file_menu.addAction(quit_action)
+        settings_menu = self.menubar.addMenu("&Settings")
+        settings_menu.addAction(get_steps_action)
+        settings_menu.addAction(get_norm_action)
+        help_menu = self.menubar.addMenu("&Help")
+        help_menu.addAction(help_action)
         layout.addWidget(self.menubar)
 
         # Add matplotlib canvas
         self.p = PlotCanvas(self, width=8, height=6)
         plot_toolbar = self.p.create_toolbar(self)
+        #plot_toolbar.
         layout.addWidget(plot_toolbar)
         layout.addWidget(self.p)
 
@@ -86,6 +107,9 @@ class MainApp(QMainWindow):
         self.setWindowTitle("Borehole Gravimetry Inversion")
         self.setGeometry(50, 50, 1000, 1000)
         self.center_window()
+
+        self.available_norms = ("L2-Norm", "W12-Norm", "Seminorm")
+        self.norm_id = 0
 
     def center_window(self):
         qr = self.frameGeometry()
@@ -126,7 +150,8 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage("Invalid file")
             return
         depth, dens = self.load_density_from_file(fname)
-        self.p.plot(depth, dens, 'Density model', 'Density (g/cm³)', 'r-')
+        self.p.plot(depth, dens, 'Density model ({norm_name})'.format(norm_name=self.available_norms[self.norm_id]),
+                    'Density (g/cm³)', 'r-')
         self.setWindowTitle("Density model for {}".format(fname))
 
     def plot_measurement_data(self):
@@ -146,6 +171,11 @@ class MainApp(QMainWindow):
     def get_steps_from_user(self):
         result, _ = QInputDialog.getInt(self, "Steps settings", "Enter number of discretization steps", min=1, value=self.discretization_steps)
         self.discretization_steps = result
+
+    def get_norm_from_user(self):
+        result, _ = QInputDialog.getItem(self, "Choose norm", "Select the norm to use for the inversion",
+                                         self.available_norms, current=self.norm_id, editable=False)
+        self.norm_id = self.available_norms.index(result)
 
     def get_dat_input_filepath(self):
         return self.get_filepath("Open .dat input file", "*.dat")
@@ -182,9 +212,12 @@ class MainApp(QMainWindow):
         """
         progname = "Programm.exe" if os.name == 'nt' else "Programm"
         prog_path = os.path.join(".", "cmake-build-debug", progname)
-        call_string = "{programm_path} {input_path} {discretization_steps}"
+        call_string = "{programm_path} {input_path} {discretization_steps} {norm_id}"
         # discretzation_steps: Number of discretization steps that are applied to discretize the resulting density distribution.
-        call_string = call_string.format(programm_path=prog_path, input_path=filepath, discretization_steps=self.discretization_steps)
+        call_string = call_string.format(programm_path=prog_path,
+                                         input_path=filepath,
+                                         discretization_steps=self.discretization_steps,
+                                         norm_id=self.norm_id)
         os.system(call_string)
 
     def load_density_from_file(self, filepath):

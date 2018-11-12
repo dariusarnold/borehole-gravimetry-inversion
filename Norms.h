@@ -96,7 +96,7 @@ struct Seminorm : public Norm{
      */
     std::vector<double> solve_for_alpha(const std::vector<double> &data, const Eigen::MatrixXd &gram_matrix) override;
 
-    std::vector<Result>  calculate_density_distribution(const std::vector<double>& alpha, const std::vector<double>& depth, uint64_t num_steps);
+    std::vector<Result>  calculate_density_distribution(const std::vector<double>& alpha, const std::vector<double>& depth, uint64_t num_steps) override;
 };
 
 

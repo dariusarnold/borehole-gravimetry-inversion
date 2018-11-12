@@ -109,6 +109,7 @@ Eigen::MatrixXd Seminorm::gram_matrix_analytical(const std::vector<double> &dept
 
 std::vector<double> Seminorm::solve_for_alpha(const std::vector<double> &data, const Eigen::MatrixXd &gram_matrix) {
     // extend data by the additional constant 0
+    // TODO: data is extended in this function but stays the same in GravimetriyInversion
     auto data_extended = data;
     data_extended.emplace_back(0.);
     return Norm::solve_for_alpha(data_extended, gram_matrix);;
