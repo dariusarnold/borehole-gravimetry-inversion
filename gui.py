@@ -150,7 +150,7 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage("Invalid file")
             return
         depth, dens = self.load_density_from_file(fname)
-        self.p.plot(depth, dens, 'Density model ({norm_name})'.format(norm_name=self.available_norms[self.norm_id]),
+        self.p.plot(dens, depth, 'Density model ({norm_name})'.format(norm_name=self.available_norms[self.norm_id]),
                     'Density (g/cm³)', 'r-')
         self.setWindowTitle("Density model for {}".format(fname))
 
@@ -165,7 +165,7 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage("Invalid file")
             return
         depth, grav = self.load_density_from_file(fname)
-        self.p.plot(depth, grav, "Gravity measurement", "Gravity (mGal)", 'r+', markersize=10)
+        self.p.plot(grav, depth, "Gravity measurement", "Gravity (mGal)", 'r+', markersize=10)
         self.setWindowTitle("Measurement data for {}".format(fname))
 
     def get_steps_from_user(self):
@@ -241,14 +241,16 @@ class PlotCanvas(FigureCanvas):
     def create_toolbar(self, parent):
         return NavigationToolbar(self, parent)
 
-    def plot(self, x_values, y_values, title, ylabel, *args, **kwargs):
+    def plot(self, x_values, y_values, title, xlabel, *args, **kwargs):
         ax = self.fig.gca()
         # clear previous ax content, so replotting works
         ax.clear()
+        # invert y axis (increase values downwards)
+        ax.invert_yaxis()
         ax.plot(x_values, y_values, *args, **kwargs)
         ax.set_title(title)
-        ax.set_xlabel("Depth (m)")
-        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel("Depth (m)")
         self.draw()
 
 
