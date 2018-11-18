@@ -1,0 +1,42 @@
+//
+// Created by darius on 02/11/18.
+//
+
+#ifndef GRAVITYINVERSION_FILEWRITER_H
+#define GRAVITYINVERSION_FILEWRITER_H
+
+
+#include <experimental/filesystem>
+#include "Result.h"
+
+namespace fs = std::experimental::filesystem;
+
+
+class FileIO {
+public:
+     /**
+      * Save depth/value pairs to file separated by a single whitespace.
+      * Every pair is then separated by a newline.
+      * No header or other data description is saved.
+      * @param result Vector of Results structs, containing depth/density pairs
+      * @param filepath full path with filename in which file is created
+      */
+    void writeData(const std::vector<Result>& result, const fs::path& filepath);
+
+    /**
+     * Write the discretized version of the interpolated function into a file
+     * @param x all values of x
+     * @param f_of_x the corresponding values f(x)
+     * @param filepath full path with filename in which file is created
+     */
+    void writeData(const std::vector<double>& x, const std::vector<double>& f_of_x, const fs::path& filepath);
+
+    /**
+     * Read depth, value pairs from file and return them in two vectors
+     * @param filepath full path with filename
+     * @return first vector contains all depth values, second vector all measurement values
+     */
+    std::pair<std::vector<double>, std::vector<double>> readData(const fs::path& filepath);
+};
+
+#endif //GRAVITYINVERSION_FILEWRITER_H

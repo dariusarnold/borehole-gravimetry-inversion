@@ -12,7 +12,7 @@
 #include "MeasurementData.h"
 #include "GravimetryInversion.h"
 #include "utils.h"
-#include "FileWriter.h"
+#include "FileIO.h"
 #include "Norms.h"
 
 
@@ -25,15 +25,8 @@ GravimetryInversion::GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _
 
 
 void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
-    std::ifstream matrixFile(filepath);
-    if (matrixFile.is_open()){
-        MeasurementData row;
-        while (matrixFile >> row) {
-            measurement_depths.push_back(row.depth);
-            measurement_data.push_back(row.grav);
-        }
-    }
-    matrixFile.close();
+    FileIO fw;
+    std::tie(measurement_depths, measurement_data) = fw.readData(filepath);
 }
 
 
@@ -48,6 +41,6 @@ void GravimetryInversion::calculate_density_distribution() {
 
 
 void GravimetryInversion::write_density_distribution_to_file(const fs::path& filepath) {
-    FileWriter fw;
+    FileIO fw;
     fw.writeData(result, filepath);
 }

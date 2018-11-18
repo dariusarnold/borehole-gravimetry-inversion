@@ -120,6 +120,7 @@ void Seminorm::solve_for_alpha(const std::vector<double> &data) {
 
 }
 
+
 std::vector<Result>
 Seminorm::calculate_density_distribution(const std::vector<double> &depth, uint64_t num_steps) {
     std::vector<Result> density_variable = Norm::calculate_density_distribution(depth, num_steps);
