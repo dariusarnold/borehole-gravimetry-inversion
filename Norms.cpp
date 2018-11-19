@@ -10,18 +10,17 @@
 
 
 
-Eigen::MatrixXd Norm::gram_matrix_analytical(const std::vector<double>& depth) {
-    Eigen::MatrixXd gram_matrix(depth.size(), depth.size());
+void Norm::gram_matrix_analytical(const std::vector<double>& depth) {
+    gram_matrix.resize(depth.size(), depth.size());
     for (size_t column_index = 0; column_index < depth.size(); ++column_index){
         for (size_t row_index = 0; row_index < depth.size(); ++row_index){
             gram_matrix(row_index, column_index) = gram_entry_analytical(depth[row_index], depth[column_index]);
         }
     }
-    return gram_matrix;
 }
 
 
-std::vector<Result> Norm::calculate_density_distribution(const std::vector<double> &alpha, const std::vector<double> &depth, uint64_t num_steps) {
+std::vector<Result> Norm::calculate_density_distribution(const std::vector<double> &depth, uint64_t num_steps) {
     // fill depth vector with ascending values
     std::vector<double>  depth_meters;
     depth_meters.reserve(num_steps);
@@ -45,13 +44,13 @@ std::vector<Result> Norm::calculate_density_distribution(const std::vector<doubl
 }
 
 
-std::vector<double> Norm::solve_for_alpha(const std::vector<double> &data, const Eigen::MatrixXd &gram_matrix) {
+void Norm::solve_for_alpha(const std::vector<double> &data) {
     // initialize eigen::vector from std::vectors data containing measurement results corrected for free air gradient
     Eigen::Map<const Eigen::VectorXd> data_vec(data.data(), data.size());
     // use Eigen to solve the matrix equation
     Eigen::VectorXd alpha_eigen = gram_matrix.colPivHouseholderQr().solve(data_vec);
     //convert result from Eigen type to std::vector and return it
-    return std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+    alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
 }
 
 
@@ -90,9 +89,9 @@ double Seminorm::representant_function(double zj, double z) {
 }
 
 
-Eigen::MatrixXd Seminorm::gram_matrix_analytical(const std::vector<double> &depth) {
+void Seminorm::gram_matrix_analytical(const std::vector<double> &depth) {
     // get top left gram matrix, containing Gamma_jk
-    Eigen::MatrixXd gram_matrix = Norm::gram_matrix_analytical(depth);
+    Norm::gram_matrix_analytical(depth);
     // calculate the additional data given as (gj, 1)
     Eigen::VectorXd additional(gram_matrix.cols()+1);
     for (size_t i = 0; i < depth.size(); ++i){
@@ -104,22 +103,21 @@ Eigen::MatrixXd Seminorm::gram_matrix_analytical(const std::vector<double> &dept
     // fill additional space, Gram matrix is symmetrical so the same vector is inserted twice
     gram_matrix.rightCols(1) = additional;
     gram_matrix.bottomRows(1) = additional.transpose();
-    return gram_matrix;
 }
 
 
-std::vector<double> Seminorm::solve_for_alpha(const std::vector<double> &data, const Eigen::MatrixXd &gram_matrix) {
+void Seminorm::solve_for_alpha(const std::vector<double> &data) {
     // extend data by the additional constant 0
     // TODO: data is extended in this function but stays the same in GravimetriyInversion
     auto data_extended = data;
     data_extended.emplace_back(0.);
-    return Norm::solve_for_alpha(data_extended, gram_matrix);;
+    Norm::solve_for_alpha(data_extended);;
 
 }
 
 std::vector<Result>
-Seminorm::calculate_density_distribution(const std::vector<double> &alpha, const std::vector<double> &depth, uint64_t num_steps) {
-    std::vector<Result> density_variable = Norm::calculate_density_distribution(alpha, depth, num_steps);
+Seminorm::calculate_density_distribution(const std::vector<double> &depth, uint64_t num_steps) {
+    std::vector<Result> density_variable = Norm::calculate_density_distribution(depth, num_steps);
     auto density_constant = alpha.back();
     std::for_each(density_variable.begin(), density_variable.end(), [density_constant](Result& x){x.density +=density_constant; });
     return density_variable;

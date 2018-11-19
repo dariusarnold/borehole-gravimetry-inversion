@@ -21,8 +21,6 @@ GravimetryInversion::GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _
         discretization_steps(_discretization_steps),
         measurement_depths(),
         measurement_data(),
-        gram_matrix(),
-        alpha(),
         result(){}
 
 
@@ -40,17 +38,17 @@ void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
 
 
 void GravimetryInversion::calculate_gram_matrix() {
-    gram_matrix = norm->gram_matrix_analytical(measurement_depths);
+    norm->gram_matrix_analytical(measurement_depths);
 }
 
 
 void GravimetryInversion::solve_alpha(){
-    alpha = norm->solve_for_alpha(measurement_data, gram_matrix);
+    norm->solve_for_alpha(measurement_data);
 }
 
 
 void GravimetryInversion::calculate_density_distribution() {
-    result = norm->calculate_density_distribution(alpha, measurement_depths, discretization_steps);
+    result = norm->calculate_density_distribution(measurement_depths, discretization_steps);
 }
 
 

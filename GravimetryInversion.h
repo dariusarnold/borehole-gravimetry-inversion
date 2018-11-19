@@ -81,8 +81,6 @@ private:
     uint64_t discretization_steps;          // discretization steps during integration
     std::vector<double> measurement_depths; // holds measurement depths read from file
     std::vector<double> measurement_data;   // holds measurement data (gravity acceleration) read from file
-    Eigen::MatrixXd gram_matrix;            //
-    std::vector<double> alpha;
     std::vector<Result> result;             // holds depth/density distribution resulting from inversion
 };
 
