@@ -17,3 +17,8 @@ std::istream& operator>>(std::istream& input, MeasurementData& md){
     md.grav -= FREE_AIR_GRADIENT * md.depth;
     return input;
 }
+
+std::istream& operator>>(std::istream& input, Data& d){
+    input >> d.x >> d.y;
+    return input;
+}

@@ -4,6 +4,7 @@
 
 #include <experimental/filesystem>
 #include <Eigen/Dense>
+#include "FileIO.h"
 
 // forward declaration
 struct Result;
@@ -39,7 +40,7 @@ public:
      * @param steps Number of discretization steps to use for density distribution
      */
     template <typename Norm_Type>
-    static void invert_data_from_file(fs::path &filepath, uint64_t steps) {
+    static void invert_data_from_file(fs::path& filepath, uint64_t steps) {
         GravimetryInversion mr(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
         mr.read_measurements_file(filepath);
         mr.do_work();
@@ -47,6 +48,19 @@ public:
         filepath.replace_extension({".dens"});
         mr.write_density_distribution_to_file(filepath);
     }
+
+
+    template <typename Norm_Type>
+    static void interpolate_data_from_file(fs::path& filepath, uint64_t steps, double a, double b){
+        GravimetryInversion gi(std::unique_ptr<Norm_Type>(new Norm_Type(a, b)), steps);
+        FileIO fio;
+        std::tie(gi.measurement_depths, gi.measurement_data) = fio.readFunctionData(filepath);
+        gi.do_work();
+        gi.calculate_density_distribution();
+        filepath.replace_extension({".int"});
+        gi.write_density_distribution_to_file(filepath);
+    }
+
 
 private:
 

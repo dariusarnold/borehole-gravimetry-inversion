@@ -3,6 +3,8 @@
 //
 
 #include <fstream>
+#include <FileIO.h>
+
 
 #include "FileIO.h"
 #include "Result.h"
@@ -29,4 +31,18 @@ std::pair<std::vector<double>, std::vector<double>> FileIO::readData(const fs::p
     }
     file.close();
     return std::make_pair(measurement_depths, measurement_data);
+}
+
+std::pair<std::vector<double>, std::vector<double>> FileIO::readFunctionData(const fs::path &filepath) {
+    std::vector<double> x, y;
+    std::ifstream file(filepath);
+    if (file.is_open()){
+        Data row;
+        while (file >> row){
+            x.push_back(row.x);
+            y.push_back(row.y);
+        }
+    }
+    file.close();
+    return std::make_pair(x, y);
 }

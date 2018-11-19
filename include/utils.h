@@ -27,4 +27,12 @@ T heaviside(T arg){
     return arg < 0 ? 0. : 1.;
 }
 
+/**
+ * Ramp function: R(x) = min(x, 0)
+ */
+ template <typename T>
+ T ramp(T arg){
+     return std::max(arg, static_cast<T>(0));
+ }
+
 #endif //PROGRAMM_UTILS_H
