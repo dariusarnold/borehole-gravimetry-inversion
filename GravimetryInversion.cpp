@@ -37,13 +37,8 @@ void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
 }
 
 
-void GravimetryInversion::calculate_gram_matrix() {
-    norm->gram_matrix_analytical(measurement_depths);
-}
-
-
-void GravimetryInversion::solve_alpha(){
-    norm->solve_for_alpha(measurement_data);
+void GravimetryInversion::do_work() {
+    norm->do_work(measurement_depths, measurement_data);
 }
 
 

@@ -53,6 +53,11 @@ void Norm::solve_for_alpha(const std::vector<double> &data) {
     alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
 }
 
+void Norm::do_work(const std::vector<double>& depth, const std::vector<double>& data) {
+    gram_matrix_analytical(depth);
+    solve_for_alpha(data);
+}
+
 
 double L2_Norm::gram_entry_analytical(double zj, double zk) {
     return gamma*gamma*std::min(zj, zk);

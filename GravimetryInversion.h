@@ -40,13 +40,13 @@ public:
     static void invert_data_from_file(fs::path &filepath, uint64_t steps) {
         GravimetryInversion mr(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
         mr.read_measurements_file(filepath);
-        mr.calculate_gram_matrix();
-        mr.solve_alpha();
+        mr.do_work();
         mr.calculate_density_distribution();
         filepath.replace_extension({".dens"});
         mr.write_density_distribution_to_file(filepath);
     }
 
+private:
 
     /**
      * Open .dat file and read measurements.
@@ -57,14 +57,9 @@ public:
     void read_measurements_file(const fs::path& filepath);
 
     /**
-     * Calculate the gram matrix
+     * Do the work required for a inversion or an interpolation using the Norm
      */
-    void calculate_gram_matrix();
-
-    /**
-     * Solve the equation system given by d_j = Gamma_jk alpha for vector alpha
-     */
-     void solve_alpha();
+    void do_work();
 
      /**
       * Calculate density distribution from the representants and the alpha coefficients.
@@ -76,7 +71,7 @@ public:
       */
      void write_density_distribution_to_file(const fs::path& filepath);
 
-private:
+
     std::unique_ptr<Norm> norm;
     uint64_t discretization_steps;          // discretization steps during integration
     std::vector<double> measurement_depths; // holds measurement depths read from file
