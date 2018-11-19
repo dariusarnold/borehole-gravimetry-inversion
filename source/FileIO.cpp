@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "FileIO.h"
+#include "Result.h"
 #include "MeasurementData.h"
 
 void FileIO::writeData(const std::vector<Result> &result, const fs::path &filepath){

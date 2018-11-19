@@ -7,9 +7,7 @@
 #include <fstream>
 // additional includes from installed libraries
 #include <Eigen/Dense>
-#include <Eigen/LU>
 // includes from own code
-#include "MeasurementData.h"
 #include "GravimetryInversion.h"
 #include "utils.h"
 #include "FileIO.h"

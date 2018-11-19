@@ -5,7 +5,9 @@
 #include <experimental/filesystem>
 #include <Eigen/Dense>
 
-#include "Norms.h"
+// forward declaration
+struct Result;
+struct Norm;
 
 
 // set type for iterating over vectors from GravimetryInversion

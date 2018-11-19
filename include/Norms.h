@@ -9,6 +9,7 @@
 #include <Eigen/Dense>
 #include "Result.h"
 
+
 struct Norm {
     Norm() = default;
     virtual ~Norm() = default;

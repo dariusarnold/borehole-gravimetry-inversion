@@ -7,7 +7,9 @@
 
 
 #include <experimental/filesystem>
-#include "Result.h"
+
+// forward declaration
+struct Result;
 
 namespace fs = std::experimental::filesystem;
 

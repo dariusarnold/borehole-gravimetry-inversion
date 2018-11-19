@@ -25,9 +25,21 @@ if (UNIX AND NOT CYGWIN)
     find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 endif (UNIX AND NOT CYGWIN)
 
-add_executable(Programm main.cpp utils.h utils.cpp MeasurementData.h MeasurementData.cpp GravimetryInversion.h GravimetryInversion.cpp FileIO.h FileIO.cpp Representant.cpp Representant.h Norms.cpp Norms.h Result.cpp Result.h)
+add_executable(Inversion main_inversion.cpp)
+add_executable(Interpolation main_interpolator.cpp)
+
+# set include directory so compiler finds my headers
+include_directories(include)
+
+# include the CMakeLists that specifiy the sources for the targets
+include(include/CMakeLists.txt)
+include(source/CMakeLists.txt)
+
+# Link liberaries
 if (UNIX AND NOT CYGWIN)
-    target_link_libraries(Programm Eigen3::Eigen)
+    target_link_libraries(Inversion Eigen3::Eigen)
+    target_link_libraries(Interpolation Eigen3::Eigen)
 endif (UNIX AND NOT CYGWIN)
 #link library for filesystem support
-target_link_libraries(Programm stdc++fs)
+target_link_libraries(Inversion stdc++fs)
+target_link_libraries(Interpolation stdc++fs)
