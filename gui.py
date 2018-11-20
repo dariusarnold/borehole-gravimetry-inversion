@@ -33,7 +33,7 @@ class MyMenuBar(QMainWindow):
         """
         super(MyMenuBar, self).__init__(*args, **kwargs)
         self.parent = parent
-        
+
         #create action to plot measurement data
         plot_measurement_data_action = QAction("Plot &measurement data", self)
         plot_measurement_data_action.setStatusTip("Select a file containing measurements to plot them")
@@ -101,6 +101,7 @@ class MainApp(QMainWindow):
         self.discretization_steps = 10000
         super(MainApp, self).__init__(*args, **kwargs)
         self.init_ui()
+        self.init_class()
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -127,6 +128,7 @@ class MainApp(QMainWindow):
         self.setGeometry(50, 50, 1000, 1000)
         self.center_window()
 
+    def init_class(self):
         self.available_norms = ("L2-Norm", "W12-Norm", "Seminorm")
         self.norm_id = 0
         self.lower_bound = None
@@ -139,10 +141,16 @@ class MainApp(QMainWindow):
         self.move(qr.topLeft())
 
     def do_interpolation(self):
+        """
+        Complete one interpolation sequence with file chooser to select input data and plotting of results
+        :return:
+        """
+        # if not set, ask user for lower/upper bound of discretization
         if self.lower_bound is None:
             self.get_lower_upper_bound_from_user()
         fname = self.get_dat_input_filepath()
         if not isinstance(fname, str):
+            # cancel if user closed file chooser without selecting a file
             return
         if get_file_ending(fname) != 'dat':
             QMessageBox.question(self, "Wrong file selected!", "Select a .dat file containing interpolation data", QMessageBox.Ok)
@@ -154,11 +162,12 @@ class MainApp(QMainWindow):
 
     def do_inversion(self):
         """
-        Complete inversion sequence with file chooser to select input data
+        Complete inversion sequence with file chooser to select input data and plotting of results
         """
         # Open file dialog to get input file
         fname = self.get_dat_input_filepath()
         if not isinstance(fname, str):
+            # cancel if user closed file chooser without selecting a file
             return
         # check whether correct file was selected
         if get_file_ending(fname) != 'dat':
@@ -240,7 +249,8 @@ class MainApp(QMainWindow):
     def get_int_result_filepath(self):
         return self.get_filepath("Open .int interpolation result file", "*.int")
 
-    def get_filepath(self, filedialog_title, file_extension_filter):
+    @staticmethod
+    def get_filepath(filedialog_title, file_extension_filter):
         """
         Get filepath from user with a file chooser dialog
         :param filedialog_title: Window title of file dialog
