@@ -23,41 +23,41 @@ def get_file_ending(filepath):
     return file_ending
 
 
-class MainApp(QMainWindow):
-    def __init__(self, *args, **kwargs):
-        self.discretization_steps = 10000
-        super(MainApp, self).__init__(*args, **kwargs)
-        self.init_ui()
-
-    def init_ui(self):
-        layout = QVBoxLayout()
-        self.main_widget = QWidget(self)
-        self.main_widget.setWhatsThis("Matplotlib-like plotting area")
-
+class MyMenuBar(QMainWindow):
+    def __init__(self, parent, *args, **kwargs):
+        """
+        Create and fill menu bar widget
+        :param parent:
+        :param args:
+        :param kwargs:
+        """
+        super(MyMenuBar, self).__init__(*args, **kwargs)
+        self.parent = parent
+        
         #create action to plot measurement data
         plot_measurement_data_action = QAction("Plot &measurement data", self)
         plot_measurement_data_action.setStatusTip("Select a file containing measurements to plot them")
         plot_measurement_data_action.setWhatsThis("Plot measurement data from file into the plotting area.")
-        plot_measurement_data_action.triggered.connect(self.plot_measurement_data)
+        plot_measurement_data_action.triggered.connect(self.parent.plot_measurement_data)
 
         # create action to load input file for inversion and do inversion
         load_dat_file_action = QAction("&Invert for density model and save+plot result", self)
         load_dat_file_action.setStatusTip("Select a file containing measurements for inversion")
         load_dat_file_action.setWhatsThis("Select a .dat file to invert the measurement results into a density model. Results will be shown in the plotting area. Toolbar at the top of the plotting area is used to manipulate the plot.")
-        load_dat_file_action.triggered.connect(self.do_inversion)
+        load_dat_file_action.triggered.connect(self.parent.do_inversion)
         load_dat_file_action.showStatusText(self)
 
         # create action to load input file for interpolation and do interpolation
         load_interpolation_input_action = QAction("Interpolate data", self)
         load_interpolation_input_action.setStatusTip("Select a file containing data for interpolation")
         load_interpolation_input_action.setWhatsThis("Select a .dat file to interpolate between the given points. Results will be shown in the plotting area. ")
-        load_interpolation_input_action.triggered.connect(self.do_interpolation)
+        load_interpolation_input_action.triggered.connect(self.parent.do_interpolation)
 
         # create action to plot density model
         plot_inversion_results_action = QAction("Plot &inversion result from file", self)
         plot_inversion_results_action.setStatusTip("Select a file containing density inversion to plot the model")
         plot_inversion_results_action.setWhatsThis("Select a .dens file to plot the density model from a previous inversion")
-        plot_inversion_results_action.triggered.connect(functools.partial(self.plot_inversion_results, None))
+        plot_inversion_results_action.triggered.connect(functools.partial(self.parent.plot_inversion_results, None))
 
         # create quit action, closes application
         quit_action = QAction("&Quit", self)
@@ -69,32 +69,45 @@ class MainApp(QMainWindow):
         get_steps_action = QAction("&Discretization steps", self)
         get_steps_action.setStatusTip("Enter number of points to use for discretization")
         get_steps_action.setWhatsThis("Set the number of points used to discretize the density function.")
-        get_steps_action.triggered.connect(self.get_steps_from_user)
+        get_steps_action.triggered.connect(self.parent.get_steps_from_user)
 
         # settings action that asks the user which norm to use
         get_norm_action = QAction("&Select norm", self)
         get_norm_action.setStatusTip("Select a norm to use for the inversion")
         get_norm_action.setWhatsThis("Select a norm that is used for the inversion. Different norms influence the resulting model differently.")
-        get_norm_action.triggered.connect(self.get_norm_from_user)
+        get_norm_action.triggered.connect(self.parent.get_norm_from_user)
 
         # create help action that explains user interface elements
         help_action = QWhatsThis.createAction(self)
         help_action.setStatusTip("Get info about components of this program")
         help_action.triggered.connect(QWhatsThis.enterWhatsThisMode)
 
-        #create menubar and attach actions
-        self.menubar = QMenuBar(self)
-        file_menu = self.menubar.addMenu("&File")
+        # attach actions to menubar
+        file_menu = self.menuBar().addMenu("&File")
         file_menu.addAction(plot_measurement_data_action)
         file_menu.addAction(load_dat_file_action)
         file_menu.addAction(load_interpolation_input_action)
         file_menu.addAction(plot_inversion_results_action)
         file_menu.addAction(quit_action)
-        settings_menu = self.menubar.addMenu("&Settings")
+        settings_menu = self.menuBar().addMenu("&Settings")
         settings_menu.addAction(get_steps_action)
         settings_menu.addAction(get_norm_action)
-        help_menu = self.menubar.addMenu("&Help")
+        help_menu = self.menuBar().addMenu("&Help")
         help_menu.addAction(help_action)
+
+
+class MainApp(QMainWindow):
+    def __init__(self, *args, **kwargs):
+        self.discretization_steps = 10000
+        super(MainApp, self).__init__(*args, **kwargs)
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+        self.main_widget = QWidget(self)
+        self.main_widget.setWhatsThis("Matplotlib-like plotting area")
+        # create and add menubar
+        self.menubar = MyMenuBar(self)
         layout.addWidget(self.menubar)
 
         # Add matplotlib canvas
@@ -107,7 +120,6 @@ class MainApp(QMainWindow):
         # Add statusbar that displays current information
         self.setStatusBar(QStatusBar(self))
         self.statusBar().showMessage("Select a file...")
-
 
         self.main_widget.setLayout(layout)
         self.setCentralWidget(self.main_widget)
