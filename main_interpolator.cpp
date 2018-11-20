@@ -31,7 +31,6 @@ int main(int argc, char* argv[]) {
         uint64_t steps = std::stoul(argv[2]);
         double a = std::stod(argv[3]);
         double b = std::stod(argv[4]);
-        //GravimetryInversion::invert_data_from_file<LinearInterpolationNorm>(filepath, steps);
         GravimetryInversion::interpolate_data_from_file<LinearInterpolationNorm>(filepath, steps, a, b);
         return 0;
     }

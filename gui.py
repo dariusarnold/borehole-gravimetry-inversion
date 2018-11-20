@@ -235,7 +235,6 @@ class MainApp(QMainWindow):
 
     def get_lower_upper_bound_from_user(self):
         answer, _ = QInputDialog.getText(self, "Enter Discretization Bounds", "Enter a (lower bound) b (upper bound)")
-        print(answer)
         lower, upper = [float(a) for a in answer.split()]
         self.lower_bound = lower
         self.upper_bound = upper
@@ -327,7 +326,6 @@ class PlotCanvas(FigureCanvas):
         return NavigationToolbar(self, parent)
 
     def plot(self, x_values, y_values, title, xlabel, linestyle, invert_y=True, *args, **kwargs):
-        print(kwargs)
         ax = self.fig.gca()
         # clear previous ax content, so replotting works
         ax.clear()
