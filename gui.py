@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 
 def get_file_ending(filepath):
     """
-    Return file ending of given file
+    Return file ending of given file5
     :param filepath:
     :return:
     """
@@ -46,6 +46,12 @@ class MainApp(QMainWindow):
         load_dat_file_action.setWhatsThis("Select a .dat file to invert the measurement results into a density model. Results will be shown in the plotting area. Toolbar at the top of the plotting area is used to manipulate the plot.")
         load_dat_file_action.triggered.connect(self.do_inversion)
         load_dat_file_action.showStatusText(self)
+
+        # create action to load input file for interpolation and do interpolation
+        load_interpolation_input_action = QAction("Interpolate data", self)
+        load_interpolation_input_action.setStatusTip("Select a file containing data for interpolation")
+        load_interpolation_input_action.setWhatsThis("Select a .dat file to interpolate between the given points. Results will be shown in the plotting area. ")
+        load_interpolation_input_action.triggered.connect(self.do_interpolation)
 
         # create action to plot density model
         plot_inversion_results_action = QAction("Plot &inversion result from file", self)
@@ -81,6 +87,7 @@ class MainApp(QMainWindow):
         file_menu = self.menubar.addMenu("&File")
         file_menu.addAction(plot_measurement_data_action)
         file_menu.addAction(load_dat_file_action)
+        file_menu.addAction(load_interpolation_input_action)
         file_menu.addAction(plot_inversion_results_action)
         file_menu.addAction(quit_action)
         settings_menu = self.menubar.addMenu("&Settings")
@@ -110,12 +117,28 @@ class MainApp(QMainWindow):
 
         self.available_norms = ("L2-Norm", "W12-Norm", "Seminorm")
         self.norm_id = 0
+        self.lower_bound = None
+        self.upper_bound = None
 
     def center_window(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+
+    def do_interpolation(self):
+        if self.lower_bound is None:
+            self.get_lower_upper_bound_from_user()
+        fname = self.get_dat_input_filepath()
+        if not isinstance(fname, str):
+            return
+        if get_file_ending(fname) != 'dat':
+            QMessageBox.question(self, "Wrong file selected!", "Select a .dat file containing interpolation data", QMessageBox.Ok)
+            self.statusBar().showMessage("Invalid file")
+            return
+        self.call_interpolation_function(fname)
+        result_fname = fname.replace(".dat", ".int")
+        self.plot_interpolation_results(result_fname)
 
     def do_inversion(self):
         """
@@ -151,8 +174,20 @@ class MainApp(QMainWindow):
             return
         depth, dens = self.load_density_from_file(fname)
         self.p.plot(dens, depth, 'Density model ({norm_name})'.format(norm_name=self.available_norms[self.norm_id]),
-                    'Density (g/cm³)', 'r-')
+                    'Density (g/cm³)', linestyle='r-')
         self.setWindowTitle("Density model for {}".format(fname))
+
+    def plot_interpolation_results(self, fname=None):
+        if not isinstance(fname, str):
+            fname = self.get_int_result_filepath()
+            if fname is None: return
+        if get_file_ending(fname) != "int":
+            QMessageBox.question(self, "Wrong file selected!", "Select a .int file containing interpolation results", QMessageBox.Ok)
+            self.statusBar().showMessage("Invalid file")
+            return
+        x, y = self.load_density_from_file(fname)
+        self.p.plot(x, y, "Interpolated function", "x", "r-", invert_y=False)
+        self.setWindowTitle("Interpolation result for {}".format(fname))
 
     def plot_measurement_data(self):
         """
@@ -177,11 +212,21 @@ class MainApp(QMainWindow):
                                          self.available_norms, current=self.norm_id, editable=False)
         self.norm_id = self.available_norms.index(result)
 
+    def get_lower_upper_bound_from_user(self):
+        answer, _ = QInputDialog.getText(self, "Enter Discretization Bounds", "Enter a (lower bound) b (upper bound)")
+        print(answer)
+        lower, upper = [float(a) for a in answer.split()]
+        self.lower_bound = lower
+        self.upper_bound = upper
+
     def get_dat_input_filepath(self):
         return self.get_filepath("Open .dat input file", "*.dat")
 
     def get_dens_result_filepath(self):
         return self.get_filepath("Open .dens result file", "*.dens")
+
+    def get_int_result_filepath(self):
+        return self.get_filepath("Open .int interpolation result file", "*.int")
 
     def get_filepath(self, filedialog_title, file_extension_filter):
         """
@@ -210,7 +255,7 @@ class MainApp(QMainWindow):
         :return:
         :rtype:
         """
-        progname = "Programm.exe" if os.name == 'nt' else "Programm"
+        progname = "Inversion.exe" if os.name == 'nt' else "Inversion"
         prog_path = os.path.join(".", "cmake-build-debug", progname)
         call_string = "{programm_path} {input_path} {discretization_steps} {norm_id}"
         # discretzation_steps: Number of discretization steps that are applied to discretize the resulting density distribution.
@@ -219,6 +264,23 @@ class MainApp(QMainWindow):
                                          discretization_steps=self.discretization_steps,
                                          norm_id=self.norm_id)
         os.system(call_string)
+
+    def call_interpolation_function(self, filepath):
+        """
+        Call interpolation function on file given in filepath
+        :param filepath:
+        :return:
+        """
+        progname = "Interpolation.exe" if os.name == "nt" else "Interpolation"
+        prog_path = os.path.join(".", "cmake-build-debug", progname)
+        call_string = "{programm_path} {input_path} {discretization_steps} {lower_bound} {upper_bound}"
+        call_string = call_string.format(programm_path=prog_path,
+                                         input_path=filepath,
+                                         discretization_steps=self.discretization_steps,
+                                         lower_bound=self.lower_bound,
+                                         upper_bound=self.upper_bound)
+        os.system(call_string)
+
 
     @staticmethod
     def load_density_from_file(filepath):
@@ -242,13 +304,14 @@ class PlotCanvas(FigureCanvas):
     def create_toolbar(self, parent):
         return NavigationToolbar(self, parent)
 
-    def plot(self, x_values, y_values, title, xlabel, *args, **kwargs):
+    def plot(self, x_values, y_values, title, xlabel, linestyle, invert_y=True, *args, **kwargs):
+        print(kwargs)
         ax = self.fig.gca()
         # clear previous ax content, so replotting works
         ax.clear()
         # invert y axis (increase values downwards)
-        ax.invert_yaxis()
-        ax.plot(x_values, y_values, *args, **kwargs)
+        if invert_y: ax.invert_yaxis()
+        ax.plot(x_values, y_values,linestyle)
         ax.set_title(title)
         ax.set_xlabel(xlabel)
         ax.set_ylabel("Depth (m)")
