@@ -11,7 +11,7 @@
 
 
 struct Norm {
-    Norm() = default;
+    Norm();
     virtual ~Norm() = default;
     /**
      * Do all the work required by this norm to set up and solve the equation system

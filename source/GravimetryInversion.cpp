@@ -28,11 +28,6 @@ void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
 }
 
 
-void GravimetryInversion::do_work() {
-    norm->do_work(measurement_depths, measurement_data);
-}
-
-
 void GravimetryInversion::calculate_density_distribution() {
     result = norm->calculate_density_distribution(measurement_depths, discretization_steps);
 }

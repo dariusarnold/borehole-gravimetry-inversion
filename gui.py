@@ -220,7 +220,8 @@ class MainApp(QMainWindow):
                                          norm_id=self.norm_id)
         os.system(call_string)
 
-    def load_density_from_file(self, filepath):
+    @staticmethod
+    def load_density_from_file(filepath):
         depth, density = np.loadtxt(filepath, unpack=True)
         return depth, density
 

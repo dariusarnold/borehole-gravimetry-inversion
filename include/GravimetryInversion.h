@@ -5,10 +5,10 @@
 #include <experimental/filesystem>
 #include <Eigen/Dense>
 #include "FileIO.h"
+#include "Norms.h"
 
 // forward declaration
 struct Result;
-struct Norm;
 
 
 // set type for iterating over vectors from GravimetryInversion
@@ -43,19 +43,27 @@ public:
     static void invert_data_from_file(fs::path& filepath, uint64_t steps) {
         GravimetryInversion mr(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
         mr.read_measurements_file(filepath);
-        mr.do_work();
+        mr.norm->do_work(mr.measurement_depths, mr.measurement_data);
         mr.calculate_density_distribution();
         filepath.replace_extension({".dens"});
         mr.write_density_distribution_to_file(filepath);
     }
 
-
+    /**
+     * Do an interpolation using an interpolating norm. Points are read from the file as x, y values
+     * The interpolation function is discretized in the interval a, b and saved to a file.
+     * @tparam Norm_Type Which norm to use
+     * @param filepath Filepath input data
+     * @param steps number of steps for discretization
+     * @param a lower boundary of evaluation interval
+     * @param b upper boundary of evaluation interval
+     */
     template <typename Norm_Type>
     static void interpolate_data_from_file(fs::path& filepath, uint64_t steps, double a, double b){
         GravimetryInversion gi(std::unique_ptr<Norm_Type>(new Norm_Type(a, b)), steps);
         FileIO fio;
         std::tie(gi.measurement_depths, gi.measurement_data) = fio.readFunctionData(filepath);
-        gi.do_work();
+        gi.norm->do_work(gi.measurement_depths, gi.measurement_data);
         gi.calculate_density_distribution();
         filepath.replace_extension({".int"});
         gi.write_density_distribution_to_file(filepath);
@@ -71,11 +79,6 @@ private:
      * @return Vector holding MeasurementData objects, which represent one row from the file
      */
     void read_measurements_file(const fs::path& filepath);
-
-    /**
-     * Do the work required for a inversion or an interpolation using the Norm
-     */
-    void do_work();
 
      /**
       * Calculate density distribution from the representants and the alpha coefficients.

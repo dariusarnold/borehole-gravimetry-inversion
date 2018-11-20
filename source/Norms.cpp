@@ -10,6 +10,9 @@
 
 
 
+Norm::Norm() : gram_matrix(), alpha() {}
+
+
 void Norm::gram_matrix_analytical(const std::vector<double>& depth) {
     gram_matrix.resize(depth.size(), depth.size());
     for (size_t column_index = 0; column_index < depth.size(); ++column_index){
