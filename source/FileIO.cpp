@@ -19,18 +19,19 @@ void FileIO::writeData(const std::vector<Result> &result, const fs::path &filepa
     file.close();
 }
 
-std::pair<std::vector<double>, std::vector<double>> FileIO::readData(const fs::path &filepath) {
-    std::vector<double> measurement_depths, measurement_data;
+std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> FileIO::readData(const fs::path &filepath) {
+    std::vector<double> measurement_depths, measurement_data, measurement_error;
     std::ifstream file(filepath);
     if (file.is_open()){
         MeasurementData row;
         while (file >> row){
             measurement_depths.push_back(row.depth);
             measurement_data.push_back(row.grav);
+            measurement_error.push_back(row.error);
         }
     }
     file.close();
-    return std::make_pair(measurement_depths, measurement_data);
+    return std::make_tuple(measurement_depths, measurement_data, measurement_error);
 }
 
 std::pair<std::vector<double>, std::vector<double>> FileIO::readFunctionData(const fs::path &filepath) {

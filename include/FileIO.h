@@ -38,7 +38,7 @@ public:
      * @param filepath full path with filename
      * @return first vector contains all depth values, second vector all measurement values
      */
-    std::pair<std::vector<double>, std::vector<double>> readData(const fs::path& filepath);
+    std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> readData(const fs::path& filepath);
 
     /**
      * Read x, f(x) pairs from file and return them in two vectors

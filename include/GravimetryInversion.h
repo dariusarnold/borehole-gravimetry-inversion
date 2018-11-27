@@ -43,7 +43,7 @@ public:
     static void invert_data_from_file(fs::path& filepath, uint64_t steps) {
         GravimetryInversion mr(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
         mr.read_measurements_file(filepath);
-        mr.norm->do_work(mr.measurement_depths, mr.measurement_data);
+        mr.norm->do_work(mr.measurement_depths, mr.measurement_data, mr.measurement_errors);
         mr.calculate_density_distribution();
         filepath.replace_extension({".dens"});
         mr.write_density_distribution_to_file(filepath);
@@ -95,6 +95,7 @@ private:
     uint64_t discretization_steps;          // discretization steps during integration
     std::vector<double> measurement_depths; // holds measurement depths read from file
     std::vector<double> measurement_data;   // holds measurement data (gravity acceleration) read from file
+    std::vector<double> measurement_errors; // holds error associated with every measurement
     std::vector<Result> result;             // holds depth/density distribution resulting from inversion
 };
 
