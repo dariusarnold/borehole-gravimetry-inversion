@@ -29,10 +29,9 @@ add_executable(Inversion main_inversion.cpp)
 add_executable(Interpolation main_interpolator.cpp)
 
 # set include directory so compiler finds my headers
-include_directories(include)
+include_directories(source)
 
 # include the CMakeLists that specifiy the sources for the targets
-include(include/CMakeLists.txt)
 include(source/CMakeLists.txt)
 
 # Link liberaries
