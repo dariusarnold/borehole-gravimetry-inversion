@@ -28,7 +28,7 @@ public:
      * @param _norm Pointer to norm to use. Norm knows how to calculate Gram matrix and density
      * @param _discretization_steps number of discretization steps to use for density
      */
-    explicit GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _discretization_steps=10000);
+    explicit GravimetryInversion(std::unique_ptr<ErrorNorm> _norm, uint64_t _discretization_steps=10000);
 
 
     /**
@@ -39,14 +39,26 @@ public:
      * One depth/gravity pair per line, line ending \n
      * @param steps Number of discretization steps to use for density distribution
      */
+     /*
     template <typename Norm_Type>
     static void invert_data_from_file(fs::path& filepath, uint64_t steps) {
         GravimetryInversion mr(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
         mr.read_measurements_file(filepath);
-        mr.norm->do_work(mr.measurement_depths, mr.measurement_data, mr.measurement_errors);
+        mr.norm->do_work(mr.measurement_depths, mr.measurement_data);
         mr.calculate_density_distribution();
         filepath.replace_extension({".dens"});
         mr.write_density_distribution_to_file(filepath);
+    }*/
+
+    template <typename Norm_Type>
+    static void invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu){
+        GravimetryInversion gi(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
+        gi.read_measurements_file(filepath);
+        double threshold_squared = gi.measurement_data.size();
+        gi.norm->do_work(gi.measurement_depths, gi.measurement_data, nu, gi.measurement_errors, threshold_squared);
+        gi.calculate_density_distribution();
+        filepath.replace_extension(".dens");
+        gi.write_density_distribution_to_file(filepath);
     }
 
     /**
@@ -58,6 +70,7 @@ public:
      * @param a lower boundary of evaluation interval
      * @param b upper boundary of evaluation interval
      */
+     /*
     template <typename Norm_Type>
     static void interpolate_data_from_file(fs::path& filepath, uint64_t steps, double a, double b){
         GravimetryInversion gi(std::unique_ptr<Norm_Type>(new Norm_Type(a, b)), steps);
@@ -68,7 +81,7 @@ public:
         filepath.replace_extension({".int"});
         gi.write_density_distribution_to_file(filepath);
     }
-
+    */
 
 private:
 
@@ -91,7 +104,7 @@ private:
      void write_density_distribution_to_file(const fs::path& filepath);
 
 
-    std::unique_ptr<Norm> norm;
+    std::unique_ptr<ErrorNorm> norm;
     uint64_t discretization_steps;          // discretization steps during integration
     std::vector<double> measurement_depths; // holds measurement depths read from file
     std::vector<double> measurement_data;   // holds measurement data (gravity acceleration) read from file
