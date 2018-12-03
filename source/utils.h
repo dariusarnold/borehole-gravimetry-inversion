@@ -6,6 +6,7 @@
 #define PROGRAMM_UTILS_H
 
 #include <iostream>
+#include <Eigen/Dense>
 
 
 /*
@@ -30,9 +31,21 @@ T heaviside(T arg){
 /**
  * Ramp function: R(x) = min(x, 0)
  */
- template <typename T>
- T ramp(T arg){
-     return std::max(arg, static_cast<T>(0));
- }
+template <typename T>
+T ramp(T arg){
+ return std::max(arg, static_cast<T>(0));
+}
+
+
+/*
+ * Convert froms std::vector to Eigen::vector
+ */
+Eigen::VectorXd std_to_eigen(const std::vector<double>& vec);
+
+/**
+ * Convert from Eigen vector to std::vector
+ */
+std::vector<double> eigen_to_std(Eigen::VectorXd vec);
+
 
 #endif //PROGRAMM_UTILS_H

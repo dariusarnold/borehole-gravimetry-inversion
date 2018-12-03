@@ -9,6 +9,7 @@
 #include "FileIO.h"
 #include "Result.h"
 #include "MeasurementData.h"
+#include <stdexcept>
 
 void FileIO::writeData(const std::vector<Result> &result, const fs::path &filepath){
     std::ofstream file;
@@ -29,6 +30,10 @@ std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> FileIO
             measurement_data.push_back(row.grav);
             measurement_error.push_back(row.error);
         }
+    }
+    else{
+        std::string what = "Cant open file: " + filepath.string();
+        throw std::runtime_error(what);
     }
     file.close();
     return std::make_tuple(measurement_depths, measurement_data, measurement_error);

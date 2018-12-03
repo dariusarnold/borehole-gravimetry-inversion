@@ -9,12 +9,30 @@
 #include "MeasurementData.h"
 
 
-ErrorNorm::ErrorNorm() {}
+ErrorNorm::ErrorNorm() :
+    gram_matrix(),
+    sigma_matrix(),
+    alpha(){}
 
 ErrorNorm::~ErrorNorm() {}
 
 void ErrorNorm::do_work(const std::vector<double>& depth, const std::vector<double>& data, double nu, const std::vector<double>& sigma, double threshold_squared){
-    std::cout << "Errornorm\n";
+    // create sigma² matrix from the measurement errors
+    sigma_matrix.resize(sigma.size(), sigma.size());
+    // fill sigma squared with values
+    Eigen::VectorXd sigma_vec = Eigen::Map<const Eigen::VectorXd>(sigma.data(), sigma.size());
+    sigma_matrix.diagonal() = sigma_vec;
+    auto sigma_squared = sigma_matrix * sigma_matrix;
+
+    ErrorNorm::gram_matrix_analytical(depth);
+    // now set up the equation to be solved to calculate alpha
+    Eigen::MatrixXd term = 1/nu * sigma_squared + gram_matrix;
+    Eigen::VectorXd data_vec = Eigen::Map<const Eigen::VectorXd>(data.data(), data.size());
+    Eigen::VectorXd alpha_eigen = term.colPivHouseholderQr().solve(data_vec);
+    //convert result from Eigen type to std::vector and return it
+    alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+    std::cout <<  "Misfit squared/N: " << ErrorNorm::calculate_misfit(nu)/data.size() << std::endl;
+    std::cout << "Norm: " << ErrorNorm::calculate_norm() << std::endl;
 }
 
 std::vector<Result> ErrorNorm::calculate_density_distribution(const std::vector<double> &depth, uint64_t num_steps) {
@@ -51,8 +69,14 @@ void ErrorNorm::gram_matrix_analytical(const std::vector<double> &depth) {
     }
 }
 
-void ErrorNorm::solve_for_alpha() {
+double ErrorNorm::calculate_norm() {
+    //TODO Save alpha as eigen type and only transform to vector later
+    return std_to_eigen(alpha).transpose() * gram_matrix * std_to_eigen(alpha);
+}
 
+double ErrorNorm::calculate_misfit(double nu) {
+    double norm = (sigma_matrix*std_to_eigen(alpha)).norm();
+    return (1./(nu*nu)) * norm*norm;
 }
 
 L2ErrorNorm::L2ErrorNorm() {}
@@ -69,19 +93,6 @@ double L2ErrorNorm::gram_entry_analytical(double zj, double zk) {
 }
 
 void L2ErrorNorm::do_work(const std::vector<double>& depth, const std::vector<double>& data, double nu, const std::vector<double>& sigma, double threshold_squared) {
-    // create sigma² matrix from the measurement errors
-    Eigen::MatrixXd sigma_squared{sigma.size(), sigma.size()};
-    // fill sigma squared with values
-    Eigen::VectorXd sigma_vec = Eigen::Map<const Eigen::VectorXd>(sigma.data(), sigma.size());
-    sigma_squared.diagonal() = sigma_vec;
-    sigma_squared = sigma_squared * sigma_squared;
-
-    ErrorNorm::gram_matrix_analytical(depth);
-    // now set up the equation to be solved to calculate alpha
-    Eigen::MatrixXd term = 1/nu * sigma_squared + gram_matrix;
-    Eigen::VectorXd data_vec = Eigen::Map<const Eigen::VectorXd>(data.data(), data.size());
-    Eigen::VectorXd alpha_eigen = term.colPivHouseholderQr().solve(data_vec);
-    //convert result from Eigen type to std::vector and return it
-    alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+    ErrorNorm::do_work(depth, data, nu, sigma, threshold_squared);
 }
 
