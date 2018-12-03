@@ -10,14 +10,16 @@ const double FREE_AIR_GRADIENT = 0.308; // MGal/m
 
 
 /**
- * Struct that holds measurement data read from file and associates the data
- * with a label which describes the data.
+ * Struct that holds measurement data with measurement errors read from file
+ * and associates the data with a label which describes the data.
  * depth unit is Meters, with a positive Z axis down the borehole.
  * grav unit is mGal.
+ * error unit is the same as grav.
  */
 struct MeasurementData{
     double depth;
     double grav;
+    double error;
 };
 
 
@@ -33,7 +35,7 @@ std::ostream& operator<<(std::ostream& os, const MeasurementData& md);
 /**
  * Read two values from a inputstream and save them in the Measurementdata.
  * Corrects for free air gradient
- * The order of the values is expected to be depth, gravity.
+ * The order of the values is expected to be depth, gravity, error
  * @param input
  * @param md
  * @return

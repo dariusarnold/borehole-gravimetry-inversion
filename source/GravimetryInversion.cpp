@@ -19,13 +19,15 @@ GravimetryInversion::GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _
         discretization_steps(_discretization_steps),
         measurement_depths(),
         measurement_data(),
+        measurement_errors(),
         result(){}
 
 
 void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
     FileIO fw;
-    std::tie(measurement_depths, measurement_data) = fw.readData(filepath);
+    std::tie(measurement_depths, measurement_data, measurement_errors) = fw.readData(filepath);
 }
+    }
 
 
 void GravimetryInversion::calculate_density_distribution() {
