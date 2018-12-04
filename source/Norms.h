@@ -14,7 +14,18 @@
 struct ErrorNorm{
     ErrorNorm(const std::vector<double>& depth, const std::vector<double>& data, const std::vector<double>& errors);
     virtual ~ErrorNorm() = 0;
+    /**
+     * Do the inversion for a constant nu and a given threshold
+     * @param nu Lagrange multiplicator, larger nu weights the misfit over the norm,
+     * smaller nu weights the norm over the misfit
+     * @param threshold_squared Threshold of the misfit.
+     */
     virtual void do_work(double nu, double threshold_squared);
+    /**
+     * Do the inversion for a misfit threshold of T² = N, where N is the number of measurement points.
+     * Optimal lagrange multiplicator is determined by bisection search, so that the misfit fully uses the threshold.
+     */
+    virtual void do_work();
     virtual std::vector<Result> calculate_density_distribution(uint64_t num_steps);
     virtual double calculate_misfit(double nu);
 protected:
@@ -23,7 +34,7 @@ protected:
     virtual double gram_entry_analytical(double zj, double zk) = 0;
     virtual void gram_matrix_analytical();
     virtual void solve_for_alpha(double nu);
-    double calc_nu_bysection(double nu_min, double nu_max, double desired_misfit);
+    double calc_nu_bysection(double nu_left, double nu_right, double desired_misfit);
 
     const std::vector<double>& measurement_depths;
     const std::vector<double>& measurement_data;

@@ -61,7 +61,8 @@ public:
         GravimetryInversion gi(std::move(_norm), steps);
         // T² = N
         double threshold_squared = measurement_data.size();
-        gi.norm->do_work(nu, threshold_squared);
+        //gi.norm->do_work(nu, threshold_squared);
+        gi.norm->do_work();
         gi.calculate_density_distribution();
         filepath.replace_extension(".dens");
         gi.write_density_distribution_to_file(filepath);

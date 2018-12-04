@@ -30,6 +30,23 @@ void ErrorNorm::do_work(double nu, double threshold_squared){
     std::cout << "Norm: " << ErrorNorm::calculate_norm() << std::endl;
 }
 
+void ErrorNorm::do_work() {
+    // create sigma² matrix from the measurement errors
+    sigma_matrix.resize(measurement_errors.size(), measurement_errors.size());
+    // fill sigma squared with values
+    Eigen::VectorXd sigma_vec = Eigen::Map<const Eigen::VectorXd>(measurement_errors.data(), measurement_errors.size());
+    sigma_matrix.diagonal() = sigma_vec;
+    // calculate the lagrange multiplicator using bysection
+    double nu_left_start = 0.01;
+    double nu_right_start = 10000;
+    double threshold = measurement_data.size();
+    double nu = calc_nu_bysection(nu_left_start, nu_right_start, threshold);
+    solve_for_alpha(nu);
+    std::cout << "Nu: " << nu << std::endl;
+    std::cout <<  "Misfit squared/N: " << ErrorNorm::calculate_misfit(nu)/measurement_data.size() << std::endl;
+    std::cout << "Norm: " << ErrorNorm::calculate_norm() << std::endl;
+}
+
 void ErrorNorm::solve_for_alpha(double nu) {
     auto sigma_squared = sigma_matrix * sigma_matrix;
     ErrorNorm::gram_matrix_analytical();
@@ -37,8 +54,6 @@ void ErrorNorm::solve_for_alpha(double nu) {
     Eigen::MatrixXd term = 1/nu * sigma_squared + gram_matrix;
     Eigen::VectorXd data_vec = Eigen::Map<const Eigen::VectorXd>(measurement_data.data(), measurement_data.size());
     alpha = term.colPivHouseholderQr().solve(data_vec);
-    //convert result from Eigen type to std::vector and return it
-    //alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
 
 }
 
@@ -86,8 +101,27 @@ double ErrorNorm::calculate_misfit(double nu) {
     return misfit;
 }
 
-double ErrorNorm::calc_nu_bysection(double nu_min, double nu_max, double desired_misfit) {
-    return 0;
+double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desired_misfit) {
+    nu_left = log(nu_left);
+    nu_right = log(nu_right);
+    double accuracy = 0.01;
+    /*
+    // calc misfits for left and right end of interval
+    solve_for_alpha(nu_left);
+    double misfit_left = calculate_misfit(nu_left);
+    solve_for_alpha(nu_right);
+    double misfit_right = calculate_misfit(nu_right);
+     */
+    double nu_mid, misfit_mid;
+    do {
+        // calc misfit for center of interval
+        nu_mid = (nu_right + nu_left)/2.;
+        solve_for_alpha(nu_mid);
+        misfit_mid = calculate_misfit(nu_mid);
+        // compare with desired misfit and hhalf interval size by taking the left or the right part
+        misfit_mid > desired_misfit ? nu_left = nu_mid : nu_right = nu_mid;
+    }while ((misfit_mid - desired_misfit) > accuracy);
+    return exp(nu_mid);
 }
 
 
