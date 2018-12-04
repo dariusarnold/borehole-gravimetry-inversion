@@ -51,7 +51,7 @@ public:
     }*/
 
     template <typename Norm_Type>
-    static void invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu){
+    static void invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu=1){
         // read data from file
         FileIO fw;
         std::vector<double> measurement_depths, measurement_data, measurement_errors;
@@ -60,8 +60,7 @@ public:
         auto _norm = std::make_unique<Norm_Type>(measurement_depths, measurement_data, measurement_errors);
         GravimetryInversion gi(std::move(_norm), steps);
         // T² = N
-        double threshold_squared = measurement_data.size();
-        //gi.norm->do_work(nu, threshold_squared);
+        //gi.norm->do_work(nu);
         gi.norm->do_work();
         gi.calculate_density_distribution();
         filepath.replace_extension(".dens");

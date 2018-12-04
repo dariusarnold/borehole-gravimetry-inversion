@@ -17,12 +17,11 @@ namespace fs = std::experimental::filesystem;
  * @return
  */
 int main(int argc, char* argv[]) {
-    if (argc != 5) {
+    if (argc != 4) {
         std::cout << "Call programm with positional arguments:\n"
                   << "1. input measurement data filepath\n"
                   << "2. number of discretization steps\n"
-                  << "3. Id of norm: L2 (0), W12 (1), Semi (2)\n"
-                  << "4. Lagrange multiplicator nu"
+                  << "3. Id of norm: L2 (0)\n"
                   << std::endl;
         return -1;
     }
@@ -30,10 +29,9 @@ int main(int argc, char* argv[]) {
         // read command line parameters
         fs::path filepath{argv[1]};
         uint64_t steps = std::stoul(argv[2]);
-        double nu = atof(argv[4]);
         switch (atoi(argv[3])){
             case 0:
-                GravimetryInversion::invert_data_from_file_with_errors<L2ErrorNorm>(filepath, steps, nu);
+                GravimetryInversion::invert_data_from_file_with_errors<L2ErrorNorm>(filepath, steps);
                 break;
             default:
                 std::cout << "Enter valid norm id" << std::endl;

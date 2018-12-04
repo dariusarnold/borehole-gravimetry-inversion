@@ -19,7 +19,7 @@ ErrorNorm::ErrorNorm(const std::vector<double>& depth, const std::vector<double>
 
 ErrorNorm::~ErrorNorm() {}
 
-void ErrorNorm::do_work(double nu, double threshold_squared){
+void ErrorNorm::do_work(double nu){
     // create sigma² matrix from the measurement errors
     sigma_matrix.resize(measurement_errors.size(), measurement_errors.size());
     // fill sigma squared with values

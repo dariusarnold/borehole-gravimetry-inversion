@@ -20,7 +20,7 @@ struct ErrorNorm{
      * smaller nu weights the norm over the misfit
      * @param threshold_squared Threshold of the misfit.
      */
-    virtual void do_work(double nu, double threshold_squared);
+    virtual void do_work(double nu);
     /**
      * Do the inversion for a misfit threshold of T² = N, where N is the number of measurement points.
      * Optimal lagrange multiplicator is determined by bisection search, so that the misfit fully uses the threshold.
