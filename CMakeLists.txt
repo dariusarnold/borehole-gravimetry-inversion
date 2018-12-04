@@ -27,6 +27,7 @@ endif (UNIX AND NOT CYGWIN)
 
 add_executable(Inversion main_inversion.cpp)
 add_executable(Interpolation main_interpolator.cpp)
+add_executable(Inversion_with_Errors main_inversion_with_errors.cpp)
 
 # set include directory so compiler finds my headers
 include_directories(source)
@@ -38,7 +39,9 @@ include(source/CMakeLists.txt)
 if (UNIX AND NOT CYGWIN)
     target_link_libraries(Inversion Eigen3::Eigen)
     target_link_libraries(Interpolation Eigen3::Eigen)
+    target_link_libraries(Inversion_with_Errors Eigen3::Eigen)
 endif (UNIX AND NOT CYGWIN)
 #link library for filesystem support
 target_link_libraries(Inversion stdc++fs)
 target_link_libraries(Interpolation stdc++fs)
+target_link_libraries(Inversion_with_Errors stdc++fs)

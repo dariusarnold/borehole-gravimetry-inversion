@@ -3,6 +3,7 @@
 import functools
 import os
 import sys
+import subprocess
 
 import numpy as np
 from PyQt5.QtWidgets import QStatusBar, QMenuBar, QWidget, QDesktopWidget, QVBoxLayout, qApp, QFileDialog, QApplication, \
@@ -174,7 +175,7 @@ class MainApp(QMainWindow):
             QMessageBox.question(self, "Wrong file selected!", "Select a .dat file containing measurement data", QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
             return
-        self.call_inversion_function(fname)
+        nu, misfit, norm = self.call_inversion_errors(fname)
         # transform filename since the inversion program changes file endings when saving results
         result_fname = fname.replace(".dat", ".dens")
         self.plot_inversion_results(result_fname)
@@ -285,6 +286,31 @@ class MainApp(QMainWindow):
                                          discretization_steps=self.discretization_steps,
                                          norm_id=self.norm_id)
         os.system(call_string)
+
+    def call_inversion_errors(self, filepath):
+        """
+        Call the inversion function for data with errors while optimizing the lagrange multiplicator nu
+        :param filepath: path to file which contains measurement data with errors
+        :return: nu, misfit squared/N and the norm of the resulting model
+        """
+        progname = "Inversion_with_Errors"
+        if os.name == 'nt': progname += ".exe"
+        progpath = os.path.join(".", "cmake-build-debug", progname)
+        call_string = "{programm_path} {input_path} {discretization_steps} {norm_id}"
+        call_string = call_string.format(programm_path=progpath,
+                                         input_path=filepath,
+                                         discretization_steps=self.discretization_steps,
+                                         norm_id=self.norm_id)
+        try:
+            result = subprocess.check_output(call_string, shell=True)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
+        result = result.split()
+        print(result)
+        nu = float(result[1])
+        misfit = float(result[4])
+        norm = float(result[6])
+        return nu, misfit, norm
 
     def call_interpolation_function(self, filepath):
         """

@@ -14,24 +14,14 @@
 #include "Norms.h"
 
 
-GravimetryInversion::GravimetryInversion(std::unique_ptr<Norm> _norm, uint64_t _discretization_steps) :
+GravimetryInversion::GravimetryInversion(std::unique_ptr<ErrorNorm> _norm, uint64_t _discretization_steps) :
         norm(std::move(_norm)),
         discretization_steps(_discretization_steps),
-        measurement_depths(),
-        measurement_data(),
-        measurement_errors(),
         result(){}
 
 
-void GravimetryInversion::read_measurements_file(const fs::path& filepath) {
-    FileIO fw;
-    std::tie(measurement_depths, measurement_data, measurement_errors) = fw.readData(filepath);
-}
-    }
-
-
 void GravimetryInversion::calculate_density_distribution() {
-    result = norm->calculate_density_distribution(measurement_depths, discretization_steps);
+    result = norm->calculate_density_distribution(discretization_steps);
 }
 
 
