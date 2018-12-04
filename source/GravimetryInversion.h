@@ -52,10 +52,16 @@ public:
 
     template <typename Norm_Type>
     static void invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu){
-        GravimetryInversion gi(std::unique_ptr<Norm_Type>(new Norm_Type), steps);
-        gi.read_measurements_file(filepath);
-        double threshold_squared = gi.measurement_data.size();
-        gi.norm->do_work(gi.measurement_depths, gi.measurement_data, nu, gi.measurement_errors, threshold_squared);
+        // read data from file
+        FileIO fw;
+        std::vector<double> measurement_depths, measurement_data, measurement_errors;
+        std::tie(measurement_depths, measurement_data, measurement_errors) = fw.readData(filepath);
+        // create a norm instance using this data
+        auto _norm = std::make_unique<Norm_Type>(measurement_depths, measurement_data, measurement_errors);
+        GravimetryInversion gi(std::move(_norm), steps);
+        // T² = N
+        double threshold_squared = measurement_data.size();
+        gi.norm->do_work(nu, threshold_squared);
         gi.calculate_density_distribution();
         filepath.replace_extension(".dens");
         gi.write_density_distribution_to_file(filepath);
@@ -84,15 +90,6 @@ public:
     */
 
 private:
-
-    /**
-     * Open .dat file and read measurements.
-     * It is expected that data is given in depth, gravity measurement order.
-     * @param filepath
-     * @return Vector holding MeasurementData objects, which represent one row from the file
-     */
-    void read_measurements_file(const fs::path& filepath);
-
      /**
       * Calculate density distribution from the representants and the alpha coefficients.
       */
@@ -106,9 +103,6 @@ private:
 
     std::unique_ptr<ErrorNorm> norm;
     uint64_t discretization_steps;          // discretization steps during integration
-    std::vector<double> measurement_depths; // holds measurement depths read from file
-    std::vector<double> measurement_data;   // holds measurement data (gravity acceleration) read from file
-    std::vector<double> measurement_errors; // holds error associated with every measurement
     std::vector<Result> result;             // holds depth/density distribution resulting from inversion
 };
 
