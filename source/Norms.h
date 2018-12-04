@@ -27,6 +27,11 @@ struct ErrorNorm{
      */
     virtual void do_work();
     virtual std::vector<Result> calculate_density_distribution(uint64_t num_steps);
+    /**
+     * Calculate the misfit X² using the formula nu^-2 | sigma * alpha |²
+     * @param nu
+     * @return
+     */
     virtual double calculate_misfit(double nu);
 protected:
     virtual double calculate_norm();

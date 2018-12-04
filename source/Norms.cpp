@@ -116,8 +116,8 @@ double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desi
     do {
         // calc misfit for center of interval
         nu_mid = (nu_right + nu_left)/2.;
-        solve_for_alpha(nu_mid);
-        misfit_mid = calculate_misfit(nu_mid);
+        solve_for_alpha(exp(nu_mid));
+        misfit_mid = calculate_misfit(exp(nu_mid));
         // compare with desired misfit and hhalf interval size by taking the left or the right part
         misfit_mid > desired_misfit ? nu_left = nu_mid : nu_right = nu_mid;
     }while ((misfit_mid - desired_misfit) > accuracy);
