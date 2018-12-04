@@ -36,9 +36,9 @@ void ErrorNorm::solve_for_alpha(double nu) {
     // now set up the equation to be solved to calculate alpha
     Eigen::MatrixXd term = 1/nu * sigma_squared + gram_matrix;
     Eigen::VectorXd data_vec = Eigen::Map<const Eigen::VectorXd>(measurement_data.data(), measurement_data.size());
-    Eigen::VectorXd alpha_eigen = term.colPivHouseholderQr().solve(data_vec);
+    alpha = term.colPivHouseholderQr().solve(data_vec);
     //convert result from Eigen type to std::vector and return it
-    alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+    //alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
 
 }
 
@@ -77,15 +77,19 @@ void ErrorNorm::gram_matrix_analytical() {
 }
 
 double ErrorNorm::calculate_norm() {
-    //TODO Save alpha as eigen type and only transform to vector later
-    return std_to_eigen(alpha).transpose() * gram_matrix * std_to_eigen(alpha);
+    return alpha.transpose() * gram_matrix * alpha;
 }
 
 double ErrorNorm::calculate_misfit(double nu) {
-    double norm = (sigma_matrix*std_to_eigen(alpha)).norm();
+    double norm = (sigma_matrix*alpha).norm();
     double misfit = (1./(nu*nu)) * norm*norm;
     return misfit;
 }
+
+double ErrorNorm::calc_nu_bysection(double nu_min, double nu_max, double desired_misfit) {
+    return 0;
+}
+
 
 L2ErrorNorm::L2ErrorNorm(const std::vector<double>& depth, const std::vector<double>& data, const std::vector<double>& errors) :
     ErrorNorm(depth, data, errors){}

@@ -23,6 +23,7 @@ protected:
     virtual double gram_entry_analytical(double zj, double zk) = 0;
     virtual void gram_matrix_analytical();
     virtual void solve_for_alpha(double nu);
+    double calc_nu_bysection(double nu_min, double nu_max, double desired_misfit);
 
     const std::vector<double>& measurement_depths;
     const std::vector<double>& measurement_data;
@@ -33,7 +34,7 @@ protected:
     // will hold error matrix sigma. Sigma is diagonal with error values sigma_1 sigma_2 etc on the diagonal
     Eigen::MatrixXd sigma_matrix;
     // will hold coefficients alpha
-    std::vector<double> alpha;
+    Eigen::VectorXd alpha;
 };
 
 
