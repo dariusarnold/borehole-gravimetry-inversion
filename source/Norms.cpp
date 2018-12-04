@@ -105,6 +105,7 @@ double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desi
     nu_left = log(nu_left);
     nu_right = log(nu_right);
     double accuracy = 0.01;
+    //TODO check whether desired misfit is within th range of left/right
     /*
     // calc misfits for left and right end of interval
     solve_for_alpha(nu_left);

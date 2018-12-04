@@ -26,6 +26,7 @@ struct ErrorNorm{
      * Optimal lagrange multiplicator is determined by bisection search, so that the misfit fully uses the threshold.
      */
     virtual void do_work();
+protected:
     virtual std::vector<Result> calculate_density_distribution(uint64_t num_steps);
     /**
      * Calculate the misfit X² using the formula nu^-2 | sigma * alpha |²
@@ -33,7 +34,6 @@ struct ErrorNorm{
      * @return
      */
     virtual double calculate_misfit(double nu);
-protected:
     virtual double calculate_norm();
     virtual double representant_function(double zj, double z) = 0;
     virtual double gram_entry_analytical(double zj, double zk) = 0;
