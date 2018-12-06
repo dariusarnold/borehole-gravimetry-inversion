@@ -7,8 +7,8 @@ from DensityModel import make_model_arange
 
 
 def main():
-    depths, dens = make_model_arange(1000, 10, 5, 2000, 30, 1)
-    plt.plot(depths, dens, ".")
+    dm = make_model_arange(1000, 10, 5, 2000, 30, 1)
+    plt.plot(dm.depths, dm.densities, ".")
     plt.show()
 
 

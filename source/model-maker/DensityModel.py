@@ -58,6 +58,15 @@ class DensityModel:
             return self.background_density
 
 
+class DiscretizedDensityModel:
+    """
+    Class that holds the result of DensityModel evaluated at discrete depths
+    """
+    def __init__(self, depths, densities):
+        self.depths = depths
+        self.densities = densities
+
+
 def make_model_arange(background_density, spike_position_top, spike_width, spike_density, eval_depth_upto, eval_stepsize):
     """
     Make density model from a stepsize
@@ -67,11 +76,11 @@ def make_model_arange(background_density, spike_position_top, spike_width, spike
     :param spike_density: density of the spike in kg/m³
     :param eval_depth_upto: Depth is evaluated from 0 to this param
     :param eval_stepsize: Depth interval is evaluated using this step size
-    :return:
+    :return: DiscretizedDensityModel holding the results, depths and associated density values
     """
     depths = np.arange(0, eval_depth_upto, eval_stepsize)
     dens = DensityModel.make_model(background_density, spike_position_top, spike_width, spike_density, depths)
-    return depths, dens
+    return DiscretizedDensityModel(depths, dens)
 
 
 def make_model_linspace(background_density, spike_position_top, spike_width, spike_density, eval_depth_upto, eval_num_steps):
@@ -83,8 +92,8 @@ def make_model_linspace(background_density, spike_position_top, spike_width, spi
     :param spike_density: density of the spike in kg/m³
     :param eval_depth_upto: Depth is evaluated from 0 to this param
     :param eval_num_steps: Depth interval is evaluated using this number of steps
-    :return:
+    :return: DiscretizedDensityModel holding the results, depths and associated density values
     """
     depths = np.linspace(0, eval_depth_upto, eval_num_steps)
     dens = DensityModel.make_model(background_density, spike_position_top, spike_width, spike_density, depths)
-    return depths, dens
+    return DiscretizedDensityModel(depths, dens)
