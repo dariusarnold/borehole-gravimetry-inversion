@@ -9,3 +9,5 @@ build/
 # ignore int but only in the root directory so test data is seen
 /*.int
 *.csv
+
+*.pyc
