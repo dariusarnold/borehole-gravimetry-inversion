@@ -20,7 +20,6 @@ class DensityModel:
         self.background_density = background_density
         self.spike_position_top = spike_position_top
         self.spike_position_bottom = spike_position_top + spike_width
-        self.spke_width = spike_width
         self.spike_density = spike_density
 
     @classmethod
