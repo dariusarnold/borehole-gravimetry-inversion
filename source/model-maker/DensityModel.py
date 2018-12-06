@@ -63,8 +63,14 @@ class DiscretizedDensityModel:
     Class that holds the result of DensityModel evaluated at discrete depths
     """
     def __init__(self, depths, densities):
+        """
+        :param depths: np.array of all depths points
+        :param densities: np.array of the densities associated with the depth points
+        """
         self.depths = depths
         self.densities = densities
+        # depth_deltas: distance between to depth points in m
+        self.depths_delta = np.diff(depths)
 
 
 def make_model_arange(background_density, spike_position_top, spike_width, spike_density, eval_depth_from, eval_depth_upto, eval_stepsize):
@@ -99,3 +105,17 @@ def make_model_linspace(background_density, spike_position_top, spike_width, spi
     depths = np.linspace(eval_depth_from, eval_depth_upto, eval_num_steps)
     dens = DensityModel.make_model(background_density, spike_position_top, spike_width, spike_density, depths)
     return DiscretizedDensityModel(depths, dens)
+
+
+def make_model_non_uniform(background_density, spike_position_top, spike_width, spike_density, eval_depths):
+    """
+    Make density model for given depth values, which do not need to have a uniform distance
+    :param background_density: value of the background density in kg/m³
+    :param spike_position_top: position of the top of the density spike in m
+    :param spike_width: width of the density spike in m
+    :param spike_density: density of the spike in kg/m³
+    :param eval_depths: np.array of depths at which the model is to be evaluated
+    :return:
+    """
+    dens = DensityModel.make_model(background_density, spike_position_top, spike_width, spike_density, eval_depths)
+    return DiscretizedDensityModel(eval_depths, dens)
