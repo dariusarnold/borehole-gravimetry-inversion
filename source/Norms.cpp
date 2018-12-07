@@ -19,18 +19,20 @@ ErrorNorm::ErrorNorm(const std::vector<double>& depth, const std::vector<double>
 
 ErrorNorm::~ErrorNorm() {}
 
-void ErrorNorm::do_work(double nu){
+std::vector<Result> ErrorNorm::do_work(double nu, uint64_t discretization_steps){
     // create sigma² matrix from the measurement errors
     sigma_matrix.resize(measurement_errors.size(), measurement_errors.size());
     // fill sigma squared with values
     Eigen::VectorXd sigma_vec = Eigen::Map<const Eigen::VectorXd>(measurement_errors.data(), measurement_errors.size());
     sigma_matrix.diagonal() = sigma_vec;
     solve_for_alpha(nu);
+    auto density = calculate_density_distribution(discretization_steps);
     std::cout <<  "Misfit squared/N: " << ErrorNorm::calculate_misfit(nu)/measurement_data.size() << std::endl;
     std::cout << "Norm: " << ErrorNorm::calculate_norm() << std::endl;
+    return density;
 }
 
-void ErrorNorm::do_work() {
+std::vector<Result> ErrorNorm::do_work(uint64_t discretization_steps) {
     // create sigma² matrix from the measurement errors
     sigma_matrix.resize(measurement_errors.size(), measurement_errors.size());
     // fill sigma squared with values
@@ -42,9 +44,11 @@ void ErrorNorm::do_work() {
     double threshold = measurement_data.size();
     double nu = calc_nu_bysection(nu_left_start, nu_right_start, threshold);
     solve_for_alpha(nu);
+    auto density = calculate_density_distribution(discretization_steps);
     std::cout << "Nu: " << nu << std::endl;
     std::cout <<  "Misfit squared/N: " << ErrorNorm::calculate_misfit(nu)/measurement_data.size() << std::endl;
     std::cout << "Norm: " << ErrorNorm::calculate_norm() << std::endl;
+    return density;
 }
 
 void ErrorNorm::solve_for_alpha(double nu) {
@@ -73,7 +77,7 @@ std::vector<Result> ErrorNorm::calculate_density_distribution(uint64_t num_steps
     density.reserve(num_steps);
     for (auto discretization_depth : depth_meters){
         double dens = 0;
-        for (size_t j = 0; j != alpha.size(); ++j){
+        for (long int j = 0; j != alpha.size(); ++j){
             dens += alpha[j] * representant_function(measurement_depths[j], discretization_depth);
         }
         density.emplace_back(Result{discretization_depth, dens});

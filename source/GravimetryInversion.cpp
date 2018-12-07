@@ -20,11 +20,6 @@ GravimetryInversion::GravimetryInversion(std::unique_ptr<ErrorNorm> _norm, uint6
         result(){}
 
 
-void GravimetryInversion::calculate_density_distribution() {
-    result = norm->calculate_density_distribution(discretization_steps);
-}
-
-
 void GravimetryInversion::write_density_distribution_to_file(const fs::path& filepath) {
     FileIO fw;
     fw.writeData(result, filepath);

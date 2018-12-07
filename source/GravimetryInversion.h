@@ -61,8 +61,7 @@ public:
         GravimetryInversion gi(std::move(_norm), steps);
         // T² = N
         //gi.norm->do_work(nu);
-        gi.norm->do_work();
-        gi.calculate_density_distribution();
+        gi.result = gi.norm->do_work(steps);
         filepath.replace_extension(".dens");
         gi.write_density_distribution_to_file(filepath);
     }
@@ -90,11 +89,6 @@ public:
     */
 
 private:
-     /**
-      * Calculate density distribution from the representants and the alpha coefficients.
-      */
-     void calculate_density_distribution();
-
      /**
       * Discretize density distribution and save it to .txt file
       */

@@ -18,14 +18,15 @@ struct ErrorNorm{
      * Do the inversion for a constant nu and a given threshold
      * @param nu Lagrange multiplicator, larger nu weights the misfit over the norm,
      * smaller nu weights the norm over the misfit
-     * @param threshold_squared Threshold of the misfit.
+     * @param discretization_steps number of steps used to discretize the inverted density model
      */
-    virtual void do_work(double nu);
+    virtual std::vector<Result> do_work(double nu, uint64_t discretization_steps);
     /**
      * Do the inversion for a misfit threshold of T² = N, where N is the number of measurement points.
      * Optimal lagrange multiplicator is determined by bisection search, so that the misfit fully uses the threshold.
+     * @param discretization_steps number of steps used to discretize the inverted density model
      */
-    virtual void do_work();
+    virtual std::vector<Result> do_work(uint64_t discretization_steps);
 protected:
     virtual std::vector<Result> calculate_density_distribution(uint64_t num_steps);
     /**
