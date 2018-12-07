@@ -9,6 +9,206 @@
 #include "MeasurementData.h"
 
 
+
+Norm::Norm(const std::vector<double>& _measurement_depths, const std::vector<double>& _measurement_data) :
+    measurement_depths(_measurement_depths),
+    measurement_data(_measurement_data),
+    gram_matrix(),
+    alpha() {}
+
+
+void Norm::gram_matrix_analytical() {
+    gram_matrix.resize(measurement_depths.size(), measurement_depths.size());
+    for (size_t column_index = 0; column_index < measurement_depths.size(); ++column_index){
+        for (size_t row_index = 0; row_index < measurement_depths.size(); ++row_index){
+            gram_matrix(row_index, column_index) = gram_entry_analytical(measurement_depths[row_index], measurement_depths[column_index]);
+        }
+    }
+}
+
+
+std::vector<Result> Norm::calculate_density_distribution(uint64_t num_steps) {
+    // fill depth vector with ascending values
+    std::vector<double>  depth_meters;
+    depth_meters.reserve(num_steps);
+    double stepsize = measurement_depths.back() / num_steps;
+    // num_steps + 2 to get one step past the end to see the L2 norm falling to zero
+    for (size_t i = 0; i != num_steps+2; ++i){
+        depth_meters.emplace_back(stepsize * i);
+    }
+    // discretize density distribution by evaluating the following formula
+    // rho(z) = sum_k alpha_k g_k(z)
+    std::vector<Result> density;
+    density.reserve(num_steps);
+    for (auto discretization_depth : depth_meters){
+        double dens = 0;
+        for (size_t j = 0; j != alpha.size(); ++j){
+            dens += alpha[j] * representant_function(measurement_depths[j], discretization_depth);
+        }
+        density.emplace_back(Result{discretization_depth, dens});
+    }
+    return density;
+}
+
+
+void Norm::solve_for_alpha() {
+    // initialize eigen::vector from std::vectors data containing measurement results corrected for free air gradient
+    Eigen::Map<const Eigen::VectorXd> data_vec(measurement_data.data(), measurement_data.size());
+    // use Eigen to solve the matrix equation
+    Eigen::VectorXd alpha_eigen = gram_matrix.colPivHouseholderQr().solve(data_vec);
+    //convert result from Eigen type to std::vector and return it
+    alpha = std::vector<double>(&alpha_eigen[0], alpha_eigen.data()+alpha_eigen.cols()*alpha_eigen.rows());
+}
+
+std::vector<Result> Norm::do_work(uint64_t discretization_steps) {
+    gram_matrix_analytical();
+    solve_for_alpha();
+    auto density = calculate_density_distribution(discretization_steps);
+    return density;
+}
+
+
+L2_Norm::L2_Norm(const std::vector<double> &depth, const std::vector<double> &data) :
+    Norm(depth, data){}
+
+double L2_Norm::gram_entry_analytical(double zj, double zk) {
+    return gamma*gamma*std::min(zj, zk);
+}
+
+
+double L2_Norm::representant_function(double zj, double z){
+    return -gamma*heaviside(zj-z);
+}
+
+
+W12_Norm::W12_Norm(const std::vector<double> &depth, const std::vector<double> &data) :
+        Norm(depth, data){}
+
+double W12_Norm::gram_entry_analytical(double zj, double zk) {
+    double zmin = std::min(zj, zk);
+    double gamma_square = gamma*gamma;
+    return gamma_square*zj*zk + gamma_square*(1./3. * std::pow(zmin, 3) - 1./2. * std::pow(zmin, 2) * (zj+zk) + zmin*zj*zk);
+}
+
+
+double W12_Norm::representant_function(double zj, double z) {
+    return gamma/2. * (zj - z) * (zj - z) * heaviside(zj-z) - gamma * (zj + 1./2. * zj*zj);
+}
+
+
+double Seminorm::gram_entry_analytical(double zj, double zk) {
+    double zmin = std::min(zj, zk);
+    double gamma_square = gamma*gamma;
+    return gamma_square*zj*zk + gamma_square*(1./3. * std::pow(zmin, 3) - 1./2. * std::pow(zmin, 2) * (zj+zk) + zmin*zj*zk);
+}
+
+
+Seminorm::Seminorm(const std::vector<double> &depth, const std::vector<double> &data) :
+    Norm(depth, data){}
+
+
+double Seminorm::representant_function(double zj, double z) {
+    return gamma/2. * (zj - z) * (zj - z) * heaviside(zj-z) - gamma * (zj + 1./2. * zj*zj);
+}
+
+
+void Seminorm::gram_matrix_analytical() {
+    // get top left gram matrix, containing Gamma_jk
+    Norm::gram_matrix_analytical();
+    // calculate the additional data given as (gj, 1)
+    Eigen::VectorXd additional(gram_matrix.cols()+1);
+    for (size_t i = 0; i < measurement_depths.size(); ++i){
+        additional(i) = -gamma*measurement_depths[i];
+    }
+    additional(additional.size()-1) = 0.;
+    // add one more row and column to the matrix
+    gram_matrix.conservativeResize(gram_matrix.rows()+1, gram_matrix.cols()+1);
+    // fill additional space, Gram matrix is symmetrical so the same vector is inserted twice
+    gram_matrix.rightCols(1) = additional;
+    gram_matrix.bottomRows(1) = additional.transpose();
+}
+
+
+void Seminorm::solve_for_alpha() {
+    // extend data by the additional constant 0
+    auto data_extended = measurement_data;
+    data_extended.emplace_back(0.);
+    Norm::solve_for_alpha();
+
+}
+
+
+std::vector<Result> Seminorm::calculate_density_distribution(uint64_t num_steps) {
+    std::vector<Result> density_variable = Norm::calculate_density_distribution(num_steps);
+    auto density_constant = alpha.back();
+    std::for_each(density_variable.begin(), density_variable.end(), [density_constant](Result& x){x.density +=density_constant; });
+    return density_variable;
+}
+
+
+
+LinearInterpolationNorm::LinearInterpolationNorm(double _a, double _b, const std::vector<double>& x_values, const std::vector<double>& y_values) :
+    Norm(x_values, y_values),
+    a(_a),
+    b(_b){}
+
+
+void LinearInterpolationNorm::gram_matrix_analytical() {
+    // get top left gram matrix, containing Gamma_jk
+    Norm::gram_matrix_analytical();
+    // calculate the additional data given as (gj, 1)
+    Eigen::VectorXd additional(gram_matrix.cols()+1);
+    for (size_t i = 0; i < measurement_depths.size(); ++i){
+        additional(i) = 1.;
+    }
+    additional(additional.size()-1) = 0.;
+    // add one more row and column to the matrix
+    gram_matrix.conservativeResize(gram_matrix.rows()+1, gram_matrix.cols()+1);
+    // fill additional space, Gram matrix is symmetrical so the same vector is inserted twice
+    gram_matrix.rightCols(1) = additional;
+    gram_matrix.bottomRows(1) = additional.transpose();
+}
+
+double LinearInterpolationNorm::gram_entry_analytical(double xj, double xk) {
+    return 1. + std::min(xj, xk) - a;
+}
+
+double LinearInterpolationNorm::representant_function(double xj, double x) {
+    return -ramp(xj-x) + 1. + xj - a;
+}
+
+void LinearInterpolationNorm::solve_for_alpha() {
+    // extend data by the additional constant 0
+    measurement_data.emplace_back(0.);
+    Norm::solve_for_alpha();
+}
+
+std::vector<Result> LinearInterpolationNorm::calculate_density_distribution(uint64_t num_steps) {
+    // fill depth vector with ascending values
+    std::vector<double>  interpolated_x_values;
+    interpolated_x_values.reserve(num_steps);
+    double stepsize = (b-a)  / num_steps;
+    // num_steps + 2 to get one step past the end to see the L2 norm falling to zero
+    for (size_t i = 0; i != num_steps+2; ++i){
+        interpolated_x_values.emplace_back(stepsize * i);
+    }
+    // discretize density distribution by evaluating the following formula
+    // rho(z) = sum_k alpha_k g_k(z)
+    std::vector<Result> discretized_interpolated_function;
+    discretized_interpolated_function.reserve(num_steps);
+    for (auto x_value : interpolated_x_values){
+        // get beta out of alpha
+        double f_of_x = alpha.back();
+
+        for (size_t j = 0; j != alpha.size()-1; ++j){
+            f_of_x += alpha[j] * representant_function(measurement_depths[j], x_value);
+        }
+        discretized_interpolated_function.emplace_back(Result{x_value, f_of_x});
+    }
+    return discretized_interpolated_function;
+}
+
+
 ErrorNorm::ErrorNorm(const std::vector<double>& depth, const std::vector<double>& data, const std::vector<double>& errors) :
     measurement_depths(depth),
     measurement_data(data),

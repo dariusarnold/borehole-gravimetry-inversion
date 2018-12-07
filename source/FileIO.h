@@ -7,6 +7,8 @@
 
 
 #include <experimental/filesystem>
+#include <fstream>
+#include <iterator>
 
 // forward declaration
 struct Result;
@@ -36,9 +38,16 @@ public:
     /**
      * Read depth, value pairs from file and return them in two vectors
      * @param filepath full path with filename
+     * @return first vector contains all depth values, second vector all measurement values
+     */
+    std::tuple<std::vector<double>, std::vector<double>> readData(const fs::path& filepath);
+
+    /**
+     * Read depth, value, error pairs from file and return them in three vectors
+     * @param filepath full path with filename
      * @return first vector contains all depth values, second vector all measurement values, third all error values
      */
-    std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> readData(const fs::path& filepath);
+    std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> readErrorData(const fs::path& filepath);
 
     /**
      * Read x, f(x) pairs from file and return them in two vectors
@@ -46,6 +55,9 @@ public:
      * @return first vector contains all x values, second vector contains all f(x) values
      */
     std::pair<std::vector<double>, std::vector<double>> readFunctionData(const fs::path& filepath);
+
+private:
+    const double FREE_AIR_GRADIENT = 0.308; // MGal/m
 };
 
 #endif //GRAVITYINVERSION_FILEWRITER_H

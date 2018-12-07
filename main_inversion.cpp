@@ -31,13 +31,13 @@ int main(int argc, char* argv[]) {
         uint64_t steps = std::stoul(argv[2]);
         switch (atoi(argv[3])){
             case 0:
-                GravimetryInversion::invert_data_from_file<L2_Norm>(filepath, steps);
+                GravimetryInversion<L2_Norm>::invert_data_from_file(filepath, steps);
                 break;
             case 1:
-                GravimetryInversion::invert_data_from_file<W12_Norm>(filepath, steps);
+                GravimetryInversion<W12_Norm>::invert_data_from_file(filepath, steps);
                 break;
             case 2:
-                GravimetryInversion::invert_data_from_file<Seminorm>(filepath, steps);
+                GravimetryInversion<Seminorm>::invert_data_from_file(filepath, steps);
                 break;
             default:
                 std::cout << "Enter valid norm id" << std::endl;

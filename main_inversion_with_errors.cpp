@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
         uint64_t steps = std::stoul(argv[2]);
         switch (atoi(argv[3])){
             case 0:
-                GravimetryInversion::invert_data_from_file_with_errors<L2ErrorNorm>(filepath, steps);
+                GravimetryInversion<L2ErrorNorm>::invert_data_from_file_with_errors(filepath, steps);
                 break;
             default:
                 std::cout << "Enter valid norm id" << std::endl;
