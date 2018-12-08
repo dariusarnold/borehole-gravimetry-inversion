@@ -103,7 +103,7 @@ double Seminorm::gram_entry_analytical(double zj, double zk) {
 }
 
 
-Seminorm::Seminorm(const std::vector<double> &depth, const std::vector<double> &data) :
+Seminorm::Seminorm(const std::vector<double>& depth, const std::vector<double>& data) :
     Norm(depth, data){}
 
 
@@ -131,8 +131,7 @@ void Seminorm::gram_matrix_analytical() {
 
 void Seminorm::solve_for_alpha() {
     // extend data by the additional constant 0
-    auto data_extended = measurement_data;
-    data_extended.emplace_back(0.);
+    measurement_data.emplace_back(0.);
     Norm::solve_for_alpha();
 
 }

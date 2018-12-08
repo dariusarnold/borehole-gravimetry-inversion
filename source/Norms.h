@@ -65,6 +65,7 @@ protected:
     // Will hold gram matrix and if required be extended to include additional columns/rows
     Eigen::MatrixXd gram_matrix;
     // will hold coefficients alpha
+    // TODO make this an eigen vector
     std::vector<double> alpha;
 };
 
