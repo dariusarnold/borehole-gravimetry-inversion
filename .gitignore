@@ -4,10 +4,10 @@ eigen
 
 build/
 
-# ignore dens but only in the root directory so test data is seen
-/*.dens
-# ignore int but only in the root directory so test data is seen
-/*.int
+# ignore dens but only in the data directory so test data is seen
+data/*.dens
+# ignore int but only in the data directory so test data is seen
+data/*.int
 *.csv
 
 *.pyc
