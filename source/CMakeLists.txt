@@ -4,6 +4,7 @@ target_sources(Inversion PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/Norms.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/Result.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/utils.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/NoErrorNorms.cpp"
         )
 target_sources(Inversion_with_Errors PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/FileIO.cpp"
@@ -11,6 +12,7 @@ target_sources(Inversion_with_Errors PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/Norms.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/Result.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/utils.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/ErrorNorms.cpp"
         )
 target_sources(Interpolation PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/FileIO.cpp"
@@ -18,6 +20,7 @@ target_sources(Interpolation PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/Norms.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/Result.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/utils.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/InterpolationNorm.cpp"
         )
 
 target_sources(Inversion PRIVATE

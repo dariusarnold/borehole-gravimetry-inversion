@@ -1,7 +1,3 @@
-//
-// Created by darius on 11/11/18.
-//
-
 #ifndef GRAVITYINVERSION_NORM_H
 #define GRAVITYINVERSION_NORM_H
 
