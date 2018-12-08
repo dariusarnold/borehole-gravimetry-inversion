@@ -53,6 +53,47 @@ class TestInversionOutput(unittest.TestCase):
                     warnings.warn("Couldn't delete file {}".format(output_filename))
 
 
+class TestInversionOutputErrors(unittest.TestCase):
+    """
+    Test whether the inversion with errors gives the same output as expected
+    """
+
+    def setUp(self):
+        self.norms = {"L2": 0
+                      }
+        self.input_file = os.path.join("data", "input_inversion_errors.dat")
+        self.partial_correct_result_file = os.path.join("data", "output_inversion_{norm}_errors.dens")
+
+    @staticmethod
+    def call_inversion_function(filename, norm_id):
+        progname = "Inversion_with_Errors.exe" if os.name == 'nt' else "Inversion_with_Errors"
+        prog_path = os.path.join("..", "cmake-build-debug", progname)
+        call_string = "{prog_path} {input_path} {discretization_steps} {norm_id}"
+        call_string = call_string.format(prog_path=prog_path,
+                                         input_path=filename,
+                                         discretization_steps=10000,
+                                         norm_id=norm_id)
+        os.system(call_string)
+        output_filename = filename.replace(".dat", ".dens")
+        return output_filename
+
+    def test_norms(self):
+        for norm_name, norm_id in self.norms.items():
+            with self.subTest(norm_name=norm_name, norm_id=norm_id):
+                correct_file = self.partial_correct_result_file.format(norm=norm_name)
+                output_filename = self.call_inversion_function(self.input_file, norm_id)
+                error_message = """
+                    {norm_name}: Results are not the same. Compare files:
+                    Expected: {expected}
+                    Got: {got}""".format(norm_name=norm_name, expected=correct_file, got=output_filename)
+                self.assertTrue(filecmp.cmp(correct_file, output_filename, shallow=False), error_message)
+                try:
+                    pass
+                    #os.remove(output_filename)
+                except OSError:
+                    warnings.warn("Couldn't delete file {}".format(output_filename))
+
+
 class TestInterpolationOutput(unittest.TestCase):
     """
     This calls the interpolation function and compares the file output to a "known good" one.
