@@ -38,3 +38,38 @@ double SemiErrorNorm::representant_function(double zj, double z) {
     // TODO this is just copied from SemiNorm, maybe there is a way to access that function here?
     return gamma/2. * (zj - z) * (zj - z) * heaviside(zj-z) - gamma * (zj + 1./2. * zj*zj);
 }
+
+void SemiErrorNorm::gram_matrix_analytical(double nu) {
+    Eigen::MatrixXd sigma_squared = sigma_matrix*sigma_matrix;
+    // get top left gram matrix, containing Gamma_jk
+    Norm::gram_matrix_analytical();
+    // modify gram matrix by adding nu^-1*sigma²
+    gram_matrix += 1/nu * sigma_squared;
+    // calculate the additional data given as (gj, 1)
+    Eigen::VectorXd additional = Eigen::VectorXd::Zero(gram_matrix.cols()+1);
+    for (size_t i = 0; i < measurement_depths.size(); ++i){
+        additional(i) = -gamma*measurement_depths[i];
+    }
+    //additional(additional.size()-1) = 0.;
+    // add one more row and column to the matrix
+    gram_matrix.conservativeResize(gram_matrix.rows()+1, gram_matrix.cols()+1);
+    // fill additional space, Gram matrix is symmetrical so the same vector is inserted twice
+    gram_matrix.rightCols(1) = additional;
+    gram_matrix.bottomRows(1) = additional.transpose();
+}
+
+void SemiErrorNorm::solve_for_alpha(double nu) {
+    // calc gram matrix and extend it by H = (g_j, h_k)
+    gram_matrix_analytical(nu);
+    // now set up the equation to be solved to calculate alpha
+    //Eigen::MatrixXd term = 1/nu * sigma_squared + gram_matrix;
+    auto data = measurement_data;
+    data.push_back(0);
+    Eigen::VectorXd data_vec = std_to_eigen(data);
+    alpha = gram_matrix.colPivHouseholderQr().solve(data_vec);
+}
+
+double SemiErrorNorm::calculate_misfit(double nu) {
+    double betrag = (1/nu * sigma_matrix * alpha.head(alpha.rows()-1)).norm();
+    return betrag*betrag;
+}

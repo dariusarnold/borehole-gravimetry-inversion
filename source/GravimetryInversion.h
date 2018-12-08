@@ -55,13 +55,17 @@ public:
         gi.write_density_distribution_to_file(filepath);
     }
 
-    static void invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu=1){
+    static void invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu=-1){
         // read data from file
         auto [measurement_depths, measurement_data, measurement_errors] = read_measurement_data_with_errors(filepath);
         // create a norm instance using this data
         auto _norm = std::make_unique<Norm_Type>(measurement_depths, measurement_data, measurement_errors);
         GravimetryInversion gi(std::move(_norm), steps);
-        gi.result = gi.norm->do_work(steps);
+        if (nu < 0) {
+            gi.result = gi.norm->do_work(steps);
+        }else{
+            gi.result = gi.norm->do_work(steps, nu);
+        }
         filepath.replace_extension(".dens");
         gi.write_density_distribution_to_file(filepath);
     }

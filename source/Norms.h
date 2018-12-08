@@ -88,10 +88,10 @@ struct Seminorm : public Norm{
     double representant_function(double zj, double z) override;
 
     /**
- * Override base class since gram matrix is build differently
- * @param depth
- * @return
- */
+     * Override base class since gram matrix is build differently
+     * @param depth
+     * @return
+     */
     void gram_matrix_analytical() override;
     /**
      * Override solving the linear equation system since data vector has to be modified before solving
@@ -135,7 +135,7 @@ struct ErrorNorm : public Norm{
      * smaller nu weights the norm over the misfit
      * @param discretization_steps number of steps used to discretize the inverted density model
      */
-    virtual std::vector<Result> do_work(double nu, uint64_t discretization_steps);
+    virtual std::vector<Result> do_work(uint64_t discretization_steps, double nu);
     /**
      * Do the inversion for a misfit threshold of T² = N, where N is the number of measurement points.
      * Optimal lagrange multiplicator is determined by bisection search, so that the misfit fully uses the threshold.
@@ -172,6 +172,10 @@ struct SemiErrorNorm : public ErrorNorm{
     ~SemiErrorNorm() override = default;
     double representant_function(double zj, double z) override;
     double gram_entry_analytical(double zj, double zk) override;
+    void gram_matrix_analytical(double nu);
+    double calculate_misfit(double nu) override;
+    void solve_for_alpha(double nu) override;
+
 };
 
 #endif //GRAVITYINVERSION_NORM_H
