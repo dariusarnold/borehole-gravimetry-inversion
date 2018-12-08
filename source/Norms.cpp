@@ -120,15 +120,24 @@ double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desi
     nu_left = log(nu_left);
     nu_right = log(nu_right);
     double accuracy = 0.01;
-    //TODO check whether desired misfit is within the range of left/right
-    /*
-    // calc misfits for left and right end of interval
+
+    // calc misfits for left and right end of interval to check if the middle is within this interval
     solve_for_alpha(nu_left);
     double misfit_left = calculate_misfit(nu_left);
     solve_for_alpha(nu_right);
     double misfit_right = calculate_misfit(nu_right);
-     */
-    double nu_mid, misfit_mid;
+    // calc misfit for center of interval
+    double nu_mid = (nu_right + nu_left)/2.;
+    solve_for_alpha(exp(nu_mid));
+    double misfit_mid;// = calculate_misfit(exp(nu_mid));
+    // if the misfit mid is outside of the interval spanned by the two start values, error
+    if (misfit_left < desired_misfit){
+        throw std::range_error("Start value nu left to big");
+    }
+    if (misfit_right > desired_misfit){
+        throw std::range_error("Start value nu right to small");
+    }
+    // else use bisection to search the optimal nu
     do {
         // calc misfit for center of interval
         nu_mid = (nu_right + nu_left)/2.;
