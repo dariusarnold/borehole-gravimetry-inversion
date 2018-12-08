@@ -65,9 +65,9 @@ ErrorNorm::ErrorNorm(const std::vector<double>& depth, const std::vector<double>
 
 std::vector<Result> ErrorNorm::do_work(double nu, uint64_t discretization_steps){
     // create sigma² matrix from the measurement errors
-    sigma_matrix.resize(measurement_errors.size(), measurement_errors.size());
+    sigma_matrix = Eigen::MatrixXd::Constant(measurement_errors.size(), measurement_errors.size(), 0.);
     // fill sigma squared with values
-    Eigen::VectorXd sigma_vec = Eigen::Map<const Eigen::VectorXd>(measurement_errors.data(), measurement_errors.size());
+    Eigen::VectorXd sigma_vec = std_to_eigen(measurement_errors);
     sigma_matrix.diagonal() = sigma_vec;
     solve_for_alpha(nu);
     auto density = calculate_density_distribution(discretization_steps);
@@ -78,13 +78,14 @@ std::vector<Result> ErrorNorm::do_work(double nu, uint64_t discretization_steps)
 
 std::vector<Result> ErrorNorm::do_work(uint64_t discretization_steps) {
     // create sigma² matrix from the measurement errors
-    sigma_matrix.resize(measurement_errors.size(), measurement_errors.size());
+    sigma_matrix = Eigen::MatrixXd::Constant(measurement_errors.size(), measurement_errors.size(), 0.);
     // fill sigma squared with values
     Eigen::VectorXd sigma_vec = std_to_eigen(measurement_errors);
     sigma_matrix.diagonal() = sigma_vec;
     // calculate the lagrange multiplicator using bysection
     double nu_left_start = 0.01;
     double nu_right_start = 10000;
+    // set threshold to number of data points
     double threshold = measurement_data.size();
     double nu = calc_nu_bysection(nu_left_start, nu_right_start, threshold);
     solve_for_alpha(nu);

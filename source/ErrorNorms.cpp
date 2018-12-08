@@ -4,7 +4,7 @@
 
 
 L2ErrorNorm::L2ErrorNorm(const std::vector<double>& depth, const std::vector<double>& data, const std::vector<double>& errors) :
-        ErrorNorm(depth, data, errors){}
+    ErrorNorm(depth, data, errors){}
 
 L2ErrorNorm::~L2ErrorNorm() {}
 

@@ -4,7 +4,7 @@
 
 
 L2_Norm::L2_Norm(const std::vector<double> &depth, const std::vector<double> &data) :
-        Norm(depth, data){}
+    Norm(depth, data){}
 
 double L2_Norm::gram_entry_analytical(double zj, double zk) {
     return gamma*gamma*std::min(zj, zk);
@@ -30,15 +30,14 @@ double W12_Norm::representant_function(double zj, double z) {
 }
 
 
+Seminorm::Seminorm(const std::vector<double>& depth, const std::vector<double>& data) :
+    Norm(depth, data){}
 
 double Seminorm::gram_entry_analytical(double zj, double zk) {
     double zmin = std::min(zj, zk);
     double gamma_square = gamma*gamma;
     return gamma_square*zj*zk + gamma_square*(1./3. * std::pow(zmin, 3) - 1./2. * std::pow(zmin, 2) * (zj+zk) + zmin*zj*zk);
 }
-
-Seminorm::Seminorm(const std::vector<double>& depth, const std::vector<double>& data) :
-        Norm(depth, data){}
 
 double Seminorm::representant_function(double zj, double z) {
     return gamma/2. * (zj - z) * (zj - z) * heaviside(zj-z) - gamma * (zj + 1./2. * zj*zj);
@@ -64,7 +63,6 @@ void Seminorm::solve_for_alpha() {
     // extend data by the additional constant 0
     measurement_data.emplace_back(0.);
     Norm::solve_for_alpha();
-
 }
 
 std::vector<Result> Seminorm::calculate_density_distribution(uint64_t num_steps) {
