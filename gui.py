@@ -41,12 +41,19 @@ class MyMenuBar(QMainWindow):
         plot_measurement_data_action.setWhatsThis("Plot measurement data from file into the plotting area.")
         plot_measurement_data_action.triggered.connect(self.parent.plot_measurement_data)
 
-        # create action to load input file for inversion and do inversion
-        load_dat_file_action = QAction("&Invert for density model and save+plot result", self)
-        load_dat_file_action.setStatusTip("Select a file containing measurements for inversion")
-        load_dat_file_action.setWhatsThis("Select a .dat file to invert the measurement results into a density model. Results will be shown in the plotting area. Toolbar at the top of the plotting area is used to manipulate the plot.")
-        load_dat_file_action.triggered.connect(self.parent.do_inversion)
-        load_dat_file_action.showStatusText(self)
+        # create action to load input file for inversion and do inversion with errors
+        load_dat_file_action_with_errors = QAction("&Inversion with Errors", self)
+        load_dat_file_action_with_errors.setStatusTip("Select a file containing measurements with errors for inversion")
+        load_dat_file_action_with_errors.setWhatsThis("Select a .dat file to invert the measurement results into a density model. Results will be shown in the plotting area. Toolbar at the top of the plotting area is used to manipulate the plot.")
+        load_dat_file_action_with_errors.triggered.connect(lambda : self.parent.do_inversion(True))
+        load_dat_file_action_with_errors.showStatusText(self)
+
+        # create action to load input file for inversion and do inversion without errors
+        load_dat_file_action_no_errors = QAction("&Inversion No Errors", self)
+        load_dat_file_action_no_errors.setStatusTip("Select a file containing measurements without errors for inversion")
+        load_dat_file_action_no_errors.setWhatsThis("Select a .dat file to invert the measurement results into a density model. Results will be shown in the plotting area. Toolbar at the top of the plotting area is used to manipulate the plot.")
+        load_dat_file_action_no_errors.triggered.connect(self.parent.do_inversion)
+        load_dat_file_action_no_errors.showStatusText(self)
 
         # create action to load input file for interpolation and do interpolation
         load_interpolation_input_action = QAction("Interpolate data", self)
@@ -86,7 +93,8 @@ class MyMenuBar(QMainWindow):
         # attach actions to menubar
         file_menu = self.menuBar().addMenu("&File")
         file_menu.addAction(plot_measurement_data_action)
-        file_menu.addAction(load_dat_file_action)
+        file_menu.addAction(load_dat_file_action_no_errors)
+        file_menu.addAction(load_dat_file_action_with_errors)
         file_menu.addAction(load_interpolation_input_action)
         file_menu.addAction(plot_inversion_results_action)
         file_menu.addAction(quit_action)
@@ -161,7 +169,7 @@ class MainApp(QMainWindow):
         result_fname = fname.replace(".dat", ".int")
         self.plot_interpolation_results(result_fname)
 
-    def do_inversion(self):
+    def do_inversion(self, with_errors=False):
         """
         Complete inversion sequence with file chooser to select input data and plotting of results
         """
@@ -175,7 +183,10 @@ class MainApp(QMainWindow):
             QMessageBox.question(self, "Wrong file selected!", "Select a .dat file containing measurement data", QMessageBox.Ok)
             self.statusBar().showMessage("Invalid file")
             return
-        nu, misfit, norm = self.call_inversion_errors(fname)
+        if with_errors:
+            nu, misfit, norm = self.call_inversion_errors(fname)
+        else:
+            self.call_inversion_function(fname)
         # transform filename since the inversion program changes file endings when saving results
         result_fname = fname.replace(".dat", ".dens")
         self.plot_inversion_results(result_fname)
@@ -285,7 +296,11 @@ class MainApp(QMainWindow):
                                          input_path=filepath,
                                          discretization_steps=self.discretization_steps,
                                          norm_id=self.norm_id)
-        os.system(call_string)
+        try:
+            result = subprocess.check_output(call_string, shell=True)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
+        print(result)
 
     def call_inversion_errors(self, filepath):
         """
