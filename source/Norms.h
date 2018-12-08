@@ -167,4 +167,11 @@ struct L2ErrorNorm : public ErrorNorm{
 };
 
 
+struct SemiErrorNorm : public ErrorNorm{
+    SemiErrorNorm(const std::vector<double>& depth, const std::vector<double>& data, const std::vector<double>& errors);
+    ~SemiErrorNorm() override = default;
+    double representant_function(double zj, double z) override;
+    double gram_entry_analytical(double zj, double zk) override;
+};
+
 #endif //GRAVITYINVERSION_NORM_H

@@ -33,6 +33,9 @@ int main(int argc, char* argv[]) {
             case 0:
                 GravimetryInversion<L2ErrorNorm>::invert_data_from_file_with_errors(filepath, steps);
                 break;
+            case 1:
+                GravimetryInversion<SemiErrorNorm>::invert_data_from_file_with_errors(filepath, steps);
+                break;
             default:
                 std::cout << "Enter valid norm id" << std::endl;
                 return -1;
