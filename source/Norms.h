@@ -61,8 +61,7 @@ protected:
     // Will hold gram matrix and if required be extended to include additional columns/rows
     Eigen::MatrixXd gram_matrix;
     // will hold coefficients alpha
-    // TODO make this an eigen vector
-    std::vector<double> alpha;
+    Eigen::VectorXd alpha;
 };
 
 
@@ -127,9 +126,9 @@ private:
 };
 
 
-struct ErrorNorm{
+struct ErrorNorm : public Norm{
     ErrorNorm(const std::vector<double>& depth, const std::vector<double>& data, const std::vector<double>& errors);
-    virtual ~ErrorNorm() = 0;
+    ~ErrorNorm() override = default;
     /**
      * Do the inversion for a constant nu and a given threshold
      * @param nu Lagrange multiplicator, larger nu weights the misfit over the norm,
@@ -142,9 +141,8 @@ struct ErrorNorm{
      * Optimal lagrange multiplicator is determined by bisection search, so that the misfit fully uses the threshold.
      * @param discretization_steps number of steps used to discretize the inverted density model
      */
-    virtual std::vector<Result> do_work(uint64_t discretization_steps);
+    std::vector<Result> do_work(uint64_t discretization_steps) override;
 protected:
-    virtual std::vector<Result> calculate_density_distribution(uint64_t num_steps);
     /**
      * Calculate the misfit X² using the formula nu^-2 | sigma * alpha |²
      * @param nu
@@ -152,22 +150,12 @@ protected:
      */
     virtual double calculate_misfit(double nu);
     virtual double calculate_norm();
-    virtual double representant_function(double zj, double z) = 0;
-    virtual double gram_entry_analytical(double zj, double zk) = 0;
-    virtual void gram_matrix_analytical();
     virtual void solve_for_alpha(double nu);
     double calc_nu_bysection(double nu_left, double nu_right, double desired_misfit);
 
-    std::vector<double> measurement_depths;
-    std::vector<double> measurement_data;
     std::vector<double> measurement_errors;
-    const double gamma = 0.08382;   // mGal m^−1 g^−1 cm^3
-    // Will hold gram matrix and if required be extended to include additional columns/rows
-    Eigen::MatrixXd gram_matrix;
     // will hold error matrix sigma. Sigma is diagonal with error values sigma_1 sigma_2 etc on the diagonal
     Eigen::MatrixXd sigma_matrix;
-    // will hold coefficients alpha
-    Eigen::VectorXd alpha;
 };
 
 
