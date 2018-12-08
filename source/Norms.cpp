@@ -83,7 +83,7 @@ std::vector<Result> ErrorNorm::do_work(uint64_t discretization_steps) {
     Eigen::VectorXd sigma_vec = std_to_eigen(measurement_errors);
     sigma_matrix.diagonal() = sigma_vec;
     // calculate the lagrange multiplicator using bysection
-    double nu_left_start = 0.01;
+    double nu_left_start = 0.00001;
     double nu_right_start = 10000;
     // set threshold to number of data points
     double threshold = measurement_data.size();
@@ -117,19 +117,11 @@ double ErrorNorm::calculate_misfit(double nu) {
 }
 
 double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desired_misfit) {
-    nu_left = log(nu_left);
-    nu_right = log(nu_right);
-    double accuracy = 0.01;
-
     // calc misfits for left and right end of interval to check if the middle is within this interval
     solve_for_alpha(nu_left);
     double misfit_left = calculate_misfit(nu_left);
     solve_for_alpha(nu_right);
     double misfit_right = calculate_misfit(nu_right);
-    // calc misfit for center of interval
-    double nu_mid = (nu_right + nu_left)/2.;
-    solve_for_alpha(exp(nu_mid));
-    double misfit_mid;// = calculate_misfit(exp(nu_mid));
     // if the misfit mid is outside of the interval spanned by the two start values, error
     if (misfit_left < desired_misfit){
         throw std::range_error("Start value nu left to big");
@@ -137,6 +129,13 @@ double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desi
     if (misfit_right > desired_misfit){
         throw std::range_error("Start value nu right to small");
     }
+    // calc misfit for center of interval
+    double nu_mid = (nu_right + nu_left)/2.;
+    solve_for_alpha(exp(nu_mid));
+    nu_left = log(nu_left);
+    nu_right = log(nu_right);
+    double accuracy = 0.01;
+    double misfit_mid;// = calculate_misfit(exp(nu_mid));
     // else use bisection to search the optimal nu
     do {
         // calc misfit for center of interval
