@@ -49,7 +49,7 @@ class DensityModel:
         """
         Eval the model at a constant depth
         :param depth: depth in m
-        :return: density at this position
+        :return: density at this position in kg/m³
         """
         if self.spike_position_top <= depth <= self.spike_position_bottom:
             return self.spike_density
@@ -63,13 +63,40 @@ class DiscretizedDensityModel:
     """
     def __init__(self, depths, densities):
         """
-        :param depths: np.array of all depths points
-        :param densities: np.array of the densities associated with the depth points
+        :param depths: np.array of all depths points in m
+        :param densities: np.array of the densities in kg/m³ associated with the depth points
         """
         self.depths = depths
         self.densities = densities
         # depth_deltas: distance between to depth points in m
         self.depths_delta = np.diff(depths)
+
+    def _eval_model(self, depths):
+        """
+        Evaluate the density model at a certain depth
+        :param depths: np.array of depth values
+        :return: np.array of the densities at the given depths
+        """
+        return np.vectorize(self._eval)(depths)
+
+
+    def _eval(self, depth):
+        """
+        Eval the model at a certain depth, returns the density value from the closest point
+        :param depth: depth in m
+        :return: density at this position in kg/m³
+        """
+        # index of the closest depth value
+        index = np.abs(self.depths-depth).argmin()
+        return self.densities[index]
+
+
+def make_model_fromfile(fname):
+    """Make discrete density model from """
+    depth, densities = np.loadtxt(fname, unpack=True)
+    # convert density reading from file (g/cm³) to kg/m³
+    densities *= 1000
+    return DiscretizedDensityModel(depth, densities)
 
 
 def make_model_arange(background_density, spike_position_top, spike_width, spike_density, eval_depth_from, eval_depth_upto, eval_stepsize):

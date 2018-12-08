@@ -4,7 +4,7 @@ Genereate snythetic density measurements
 
 import numpy as np
 
-from DensityModel import DensityModel
+from DensityModel import DensityModel, make_model_fromfile
 from SyntheticGenerator import SyntheticGenerator
 
 
@@ -24,10 +24,18 @@ def save_synthetic_data(fname, density_background, density_spike, spike_top, spi
     SyntheticGenerator.save_to_file(fname, dm, measurement_depths)
 
 
-def main():
+def generate_synthetic_measurement():
     depths = np.array((25., 66., 143.))
     save_synthetic_data("test.dat", 2700, 3500, 40, 5, depths)
 
 
+def recreate_measurement_data():
+    # read density model that was created as an inversion result
+    dm = make_model_fromfile("input_dens_model.dens")
+    depths = np.array((25., 66., 143.))
+    # evaluate this density model at the same points
+    SyntheticGenerator.save_to_file("output_meas_data.dat", dm, depths)
+
+
 if __name__ == '__main__':
-    main()
+    recreate_measurement_data()
