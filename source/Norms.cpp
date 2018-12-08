@@ -135,6 +135,6 @@ double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desi
         misfit_mid = calculate_misfit(exp(nu_mid));
         // compare with desired misfit and half interval size by taking the left or the right part
         misfit_mid > desired_misfit ? nu_left = nu_mid : nu_right = nu_mid;
-    }while ((misfit_mid - desired_misfit) > accuracy);
+    }while (std::abs(misfit_mid - desired_misfit) > accuracy);
     return exp(nu_mid);
 }
