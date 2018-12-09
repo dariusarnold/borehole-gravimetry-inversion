@@ -73,3 +73,10 @@ double SemiErrorNorm::calculate_misfit(double nu) {
     double betrag = (1/nu * sigma_matrix * alpha.head(alpha.rows()-1)).norm();
     return betrag*betrag;
 }
+
+std::vector<Result> SemiErrorNorm::calculate_density_distribution(uint64_t num_steps) {
+    std::vector<Result> density_variable = ErrorNorm::calculate_density_distribution(num_steps);
+    auto density_constant = alpha(alpha.rows()-1);
+    std::for_each(density_variable.begin(), density_variable.end(), [density_constant](Result& x){x.density +=density_constant; });
+    return density_variable;
+}

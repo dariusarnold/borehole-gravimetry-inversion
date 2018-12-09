@@ -175,6 +175,7 @@ struct SemiErrorNorm : public ErrorNorm{
     void gram_matrix_analytical(double nu);
     double calculate_misfit(double nu) override;
     void solve_for_alpha(double nu) override;
+    std::vector<Result> calculate_density_distribution(uint64_t num_steps) override;
 
 };
 
