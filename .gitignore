@@ -10,6 +10,6 @@ data/*.dens
 data/*.int
 *.csv
 # ignore the numerous files that are created from a resolution analysis
-ex9/res_ana_*
+ex9/a3/res_ana_*
 
 *.pyc

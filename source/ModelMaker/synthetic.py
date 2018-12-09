@@ -33,8 +33,9 @@ def save_synthetic_data(fname, density_background, density_spike, spike_top, spi
 
 
 def generate_synthetic_measurement():
-    depths = np.array((25., 66., 143.))
-    save_synthetic_data("test.dat", 2700, 3500, 40, 5, depths, save_dm=True)
+    depths = np.linspace(0, 150, 15)
+    meas_errors = np.array((0.1,)*len(depths))
+    save_synthetic_data("ex94.dat", 2700, 3500, 40, 5, depths, meas_errors, save_dm=True)
 
 
 def recreate_measurement_data():
@@ -46,5 +47,5 @@ def recreate_measurement_data():
 
 
 if __name__ == '__main__':
-    recreate_measurement_data()
+    #recreate_measurement_data()
     generate_synthetic_measurement()

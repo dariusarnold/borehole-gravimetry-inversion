@@ -47,7 +47,7 @@ def main():
 
     inversion_results = []
     for depth_spike in depths_spike_top:
-        fname = "res_ana_{}.dat".format(depth_spike)
+        fname = "a3/res_ana_{}.dat".format(depth_spike)
         if not JUST_READ:
             save_synthetic_data(fname, dens_bg, dens_spike, depth_spike, spike_width, meas_depths, meas_errors)
             call_inversion(fname, nu)
