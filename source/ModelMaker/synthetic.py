@@ -8,10 +8,11 @@ from DensityModel import DensityModel, make_model_fromfile
 from SyntheticGenerator import SyntheticGenerator
 
 
-def save_synthetic_data(fname, density_background, density_spike, spike_top, spike_width, measurement_depths):
+def save_synthetic_data(fname, density_background, density_spike, spike_top, spike_width, measurement_depths, save_dm=False):
     """
     Generate synthetic data for a density model with constant background density and one density spike.
     Data is saved to file
+    :param save_dm: If density model is discretized and saved as well
     :param fname: filename
     :param density_background: background density in kg/m³
     :param density_spike: density of spike in kg/m³
@@ -21,12 +22,16 @@ def save_synthetic_data(fname, density_background, density_spike, spike_top, spi
     :return: None
     """
     dm = DensityModel(density_background, spike_top, spike_width, density_spike)
+    if save_dm:
+        path, extension = fname.split(".")
+        dfname = path + ".dens"
+        dm.save_to_file(dfname, 10000, 0, measurement_depths[-1])
     SyntheticGenerator.save_to_file(fname, dm, measurement_depths)
 
 
 def generate_synthetic_measurement():
     depths = np.array((25., 66., 143.))
-    save_synthetic_data("test.dat", 2700, 3500, 40, 5, depths)
+    save_synthetic_data("test.dat", 2700, 3500, 40, 5, depths, save_dm=True)
 
 
 def recreate_measurement_data():
@@ -39,3 +44,4 @@ def recreate_measurement_data():
 
 if __name__ == '__main__':
     recreate_measurement_data()
+    generate_synthetic_measurement()

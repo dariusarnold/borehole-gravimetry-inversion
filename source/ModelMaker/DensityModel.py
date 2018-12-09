@@ -56,6 +56,20 @@ class DensityModel:
         else:
             return self.background_density
 
+    def save_to_file(self, fname, discretization_steps, depth_top, depth_bottom):
+        """
+        Save a discretized version of the density model to the file.
+        :param fname: Filename
+        :param discretization_steps: number of steps used for discretization
+        :param depth_top: Top of evaluation interval
+        :param depth_bottom: Bottom of evaluation interval
+        """
+        depths = np.linspace(depth_top, depth_bottom, discretization_steps)
+        dens = self._eval_model(depths)
+        data = (depths, dens)
+        np.savetxt(fname, np.transpose(data), delimiter=" ", fmt="%.2f")
+
+
 
 class DiscretizedDensityModel:
     """

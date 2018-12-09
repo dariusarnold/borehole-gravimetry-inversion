@@ -7,7 +7,9 @@ import subprocess
 
 import numpy as np
 from PyQt5.QtWidgets import QStatusBar, QMenuBar, QWidget, QDesktopWidget, QVBoxLayout, qApp, QFileDialog, QApplication, \
-    QSizePolicy, QAction, QMessageBox, QMainWindow, QInputDialog, QWhatsThis
+    QSizePolicy, QAction, QMessageBox, QMainWindow, QInputDialog, QWhatsThis, QDialog, QGridLayout, QSpinBox, QLabel, \
+    QDialogButtonBox, QDoubleSpinBox
+from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -73,6 +75,26 @@ class MyMenuBar(QMainWindow):
         quit_action.setWhatsThis("Goodbye")
         quit_action.triggered.connect(qApp.quit)
 
+        # resolution single asks user for parameters to a density model, which is used to create synthetic
+        # measurement data. The density model is made with a constant background density and a single spike.
+        # This data is inverted and the original density model and the inversion model is plotted
+        resolution_single_action = QAction("Resolution Analysis Single", self)
+        resolution_single_action.setStatusTip("Enter parameters")
+        resolution_single_action.setWhatsThis("asks user for parameters to a density model, which is used to create "+
+        "synthetic measurement data. This data is inverted and the original density model and the inversion model is plotted")
+        resolution_single_action.triggered.connect(self.parent.resolution_analysis_single)
+
+        # resolution multiple will ask for parameters for a density model, which is used to generate synthetic data.
+        # The density model has a constant background density and a spike at a certain depth. The depth of the spike
+        # will be varied, and the resulting multiple models (after inversion) will be plottet over the spike depth.
+        resolution_multiple_action = QAction("Resolution Analysis Multi", self)
+        resolution_multiple_action.setStatusTip("Enter parameters")
+        resolution_multiple_action.setWhatsThis("resolution multiple will ask for parameters for a density model, " +
+        "which is used to generate synthetic data. The density model has a constant background density and a spike " +
+        "at a certain depth. The depth of the spike will be varied, and the resulting multiple models " +
+        "(after inversion) will be plottet over the spike depth")
+        resolution_multiple_action.triggered.connect(self.parent.resolution_analysis_multiple)
+
         # simple settings action asks user for number of discretization steps
         get_steps_action = QAction("&Discretization steps", self)
         get_steps_action.setStatusTip("Enter number of points to use for discretization")
@@ -98,11 +120,68 @@ class MyMenuBar(QMainWindow):
         file_menu.addAction(load_interpolation_input_action)
         file_menu.addAction(plot_inversion_results_action)
         file_menu.addAction(quit_action)
+        resolution_menu = self.menuBar().addMenu("&Resolution")
+        resolution_menu.addAction(resolution_single_action)
+        resolution_menu.addAction(resolution_multiple_action)
         settings_menu = self.menuBar().addMenu("&Settings")
         settings_menu.addAction(get_steps_action)
         settings_menu.addAction(get_norm_action)
         help_menu = self.menuBar().addMenu("&Help")
         help_menu.addAction(help_action)
+
+
+class ResolutionAnalysisDialog(QDialog):
+    def __init__(self, parent, *args, **kwargs):
+        super(ResolutionAnalysisDialog, self).__init__(parent, *args, **kwargs)
+        self.parent = parent
+        self.setObjectName("Resolution Settings")
+
+        layout = QVBoxLayout(self)
+
+        bg_dens_l = QLabel("Enter background density (kg/m³)")
+        self.background_dens_spinbox = QSpinBox(self)
+        layout.addWidget(bg_dens_l)
+        layout.addWidget(self.background_dens_spinbox)
+
+        spike_dens_l = QLabel("Enter spike density (kg/m³)")
+        self.spike_dens_spinbox = QSpinBox(self)
+        layout.addWidget(spike_dens_l)
+        layout.addWidget(self.spike_dens_spinbox)
+
+        z1_l = QLabel("Enter depth of top of spike (m)")
+        self.z1_spinbox = QDoubleSpinBox(self)
+        layout.addWidget(z1_l)
+        layout.addWidget(self.z1_spinbox)
+
+        z2_l = QLabel("Enter depth of bottom of spike (m)")
+        self.z2_spinbox = QDoubleSpinBox(self)
+        layout.addWidget(z2_l)
+        layout.addWidget(self.z2_spinbox)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+        self.setLayout(layout)
+
+    def get_densities(self):
+        bg_dens = self.background_dens_spinbox.value()
+        spike_dens = self.spike_dens_spinbox.value()
+        return bg_dens, spike_dens
+
+    def get_depths(self):
+        z1 = self.z1_spinbox.value()
+        z2 = self.z2_spinbox.value()
+        return z1, z2
+
+    @staticmethod
+    def get_values(parent=None):
+        dialog = ResolutionAnalysisDialog(parent)
+        result = dialog.exec_()
+        bg_dens, spike_dens = dialog.get_densities()
+        z1, z2 = dialog.get_depths()
+        return result, bg_dens, spike_dens, z1, z2
 
 
 class MainApp(QMainWindow):
@@ -235,6 +314,13 @@ class MainApp(QMainWindow):
         depth, grav = self.load_density_from_file(fname)
         self.p.plot(grav, depth, "Gravity measurement", "Gravity (mGal)", 'r+', markersize=10)
         self.setWindowTitle("Measurement data for {}".format(fname))
+
+    def resolution_analysis_single(self):
+        x = ResolutionAnalysisDialog.get_values(self)
+        print(x)
+
+    def resolution_analysis_multiple(self):
+        pass
 
     def get_steps_from_user(self):
         result, _ = QInputDialog.getInt(self, "Steps settings", "Enter number of discretization steps", min=1, value=self.discretization_steps)
