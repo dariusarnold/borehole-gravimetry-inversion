@@ -8,12 +8,13 @@ import subprocess
 import numpy as np
 from PyQt5.QtWidgets import QStatusBar, QMenuBar, QWidget, QDesktopWidget, QVBoxLayout, qApp, QFileDialog, QApplication, \
     QSizePolicy, QAction, QMessageBox, QMainWindow, QInputDialog, QWhatsThis, QDialog, QGridLayout, QSpinBox, QLabel, \
-    QDialogButtonBox, QDoubleSpinBox
+    QDialogButtonBox, QDoubleSpinBox, QLineEdit
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
+from ModelMaker.synthetic import save_synthetic_data
 
 def get_file_ending(filepath):
     """
@@ -140,23 +141,44 @@ class ResolutionAnalysisDialog(QDialog):
 
         bg_dens_l = QLabel("Enter background density (kg/m³)")
         self.background_dens_spinbox = QSpinBox(self)
+        self.background_dens_spinbox.setMaximum(100000)
         layout.addWidget(bg_dens_l)
         layout.addWidget(self.background_dens_spinbox)
 
         spike_dens_l = QLabel("Enter spike density (kg/m³)")
         self.spike_dens_spinbox = QSpinBox(self)
+        self.spike_dens_spinbox.setMaximum(100000)
         layout.addWidget(spike_dens_l)
         layout.addWidget(self.spike_dens_spinbox)
 
         z1_l = QLabel("Enter depth of top of spike (m)")
         self.z1_spinbox = QDoubleSpinBox(self)
+        self.z1_spinbox.setMaximum(100000)
         layout.addWidget(z1_l)
         layout.addWidget(self.z1_spinbox)
 
         z2_l = QLabel("Enter depth of bottom of spike (m)")
         self.z2_spinbox = QDoubleSpinBox(self)
+        self.z2_spinbox.setMaximum(100000)
         layout.addWidget(z2_l)
         layout.addWidget(self.z2_spinbox)
+
+        meas_depth_l = QLabel("Enter measurement depths (m)")
+        self.meas_depth_line = QLineEdit(self)
+        layout.addWidget(meas_depth_l)
+        layout.addWidget(self.meas_depth_line)
+
+        meas_errors_l = QLabel("Enter measurement errors (mGal)")
+        self.meas_errors_line = QLineEdit(self)
+        layout.addWidget(meas_errors_l)
+        layout.addWidget(self.meas_errors_line)
+
+        nu_l = QLabel("Enter lagrange multiplicator nu")
+        self.nu_spinbox = QDoubleSpinBox(self)
+        self.nu_spinbox.setSingleStep(0.01)
+        self.nu_spinbox.setMaximum(10000)
+        layout.addWidget(nu_l)
+        layout.addWidget(self.nu_spinbox)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self)
         buttons.accepted.connect(self.accept)
@@ -171,17 +193,38 @@ class ResolutionAnalysisDialog(QDialog):
         return bg_dens, spike_dens
 
     def get_depths(self):
+        """
+        :return: depth top of spike, depth bottom of spike, ndarray of measurement depths
+        """
         z1 = self.z1_spinbox.value()
         z2 = self.z2_spinbox.value()
-        return z1, z2
+        meas_depths = self.meas_depth_line.text()
+        meas_depths = np.array([float(md) for md in meas_depths.split()])
+        return z1, z2, meas_depths
+
+    def get_errors(self):
+        """
+        :return: ndarray of measurement errors
+        """
+        me = self.meas_errors_line.text()
+        me = np.array([float(x) for x in me.split()])
+        return me
+
+    def get_nu(self):
+        """
+        :return: Lagrange multiplicator nu
+        """
+        return self.nu_spinbox.value()
 
     @staticmethod
     def get_values(parent=None):
         dialog = ResolutionAnalysisDialog(parent)
         result = dialog.exec_()
         bg_dens, spike_dens = dialog.get_densities()
-        z1, z2 = dialog.get_depths()
-        return result, bg_dens, spike_dens, z1, z2
+        z1, z2, meas_depths = dialog.get_depths()
+        meas_errors = dialog.get_errors()
+        nu = dialog.get_nu()
+        return result, bg_dens, spike_dens, z1, z2, meas_depths, meas_errors, nu
 
 
 class MainApp(QMainWindow):
@@ -316,8 +359,15 @@ class MainApp(QMainWindow):
         self.setWindowTitle("Measurement data for {}".format(fname))
 
     def resolution_analysis_single(self):
-        x = ResolutionAnalysisDialog.get_values(self)
-        print(x)
+        result, dens_background, dens_spike, z1, z2, meas_depths, meas_errors, nu = ResolutionAnalysisDialog.get_values(self)
+        if result == 0:
+            return
+        fname = "gui.dat"
+        save_synthetic_data(fname, dens_background, dens_spike, z1, z2-z1, meas_depths, meas_errors)
+        if nu == 0:
+            # this means optimal parameter is searched for
+            nu = None
+        self.call_inversion_errors(fname, nu)
 
     def resolution_analysis_multiple(self):
         pass
@@ -388,7 +438,7 @@ class MainApp(QMainWindow):
             raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
         print(result)
 
-    def call_inversion_errors(self, filepath):
+    def call_inversion_errors(self, filepath, nu=None):
         """
         Call the inversion function for data with errors while optimizing the lagrange multiplicator nu
         :param filepath: path to file which contains measurement data with errors
@@ -397,11 +447,12 @@ class MainApp(QMainWindow):
         progname = "Inversion_with_Errors"
         if os.name == 'nt': progname += ".exe"
         progpath = os.path.join(".", "cmake-build-debug", progname)
-        call_string = "{programm_path} {input_path} {discretization_steps} {norm_id}"
+        call_string = "{programm_path} {input_path} {discretization_steps} {norm_id} {nu}"
         call_string = call_string.format(programm_path=progpath,
                                          input_path=filepath,
                                          discretization_steps=self.discretization_steps,
-                                         norm_id=self.norm_id)
+                                         norm_id=self.norm_id,
+                                         nu="" if nu is None else nu)
         try:
             result = subprocess.check_output(call_string, shell=True)
         except subprocess.CalledProcessError as e:
