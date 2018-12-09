@@ -38,16 +38,16 @@ def main():
     dens_spike = 3500
     spike_width = 5
     depths_spike_top = np.arange(0, 151, 5)
-    meas_depths = np.array([25, 66, 143])
-    meas_errors = np.array([0.1, 0.3, 0.5])
+    meas_depths = np.arange(0, 150, 15)
+    meas_errors = np.array([0.1]*len(meas_depths))
     # parameters of inversion
-    nu = 0.001242
-    JUST_READ=True
+    nu = 6.58E-4
+    JUST_READ=False
 
 
     inversion_results = []
     for depth_spike in depths_spike_top:
-        fname = "a3/res_ana_{}.dat".format(depth_spike)
+        fname = "a4/res_ana_{}.dat".format(depth_spike)
         if not JUST_READ:
             save_synthetic_data(fname, dens_bg, dens_spike, depth_spike, spike_width, meas_depths, meas_errors)
             call_inversion(fname, nu)
