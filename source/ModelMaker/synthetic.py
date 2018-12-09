@@ -16,7 +16,7 @@ def save_synthetic_data(fname, density_background, density_spike, spike_top, spi
     :param measurement_errors: If a ndarray of floats is given, will be saved with the synthetic measurements. Hast
     to have same length as measurement_depths
     :param save_dm: If density model is discretized and saved as well
-    :param fname: filename
+    :param fname: filename in which data is saved
     :param density_background: background density in kg/m³
     :param density_spike: density of spike in kg/m³
     :param spike_top: depth of the top of the spike layer in m

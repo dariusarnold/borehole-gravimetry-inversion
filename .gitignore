@@ -9,5 +9,7 @@ data/*.dens
 # ignore int but only in the data directory so test data is seen
 data/*.int
 *.csv
+# ignore the numerous files that are created from a resolution analysis
+ex9/res_ana_*
 
 *.pyc

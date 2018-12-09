@@ -1,7 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def main():
+    """
+    Show results of 9.2
+    :return:
+    """
     # load data from density model
     depth_dm, dens_dm = np.loadtxt("test_dm.dens", unpack=True)
     # load resulting density model from inversion
