@@ -38,7 +38,7 @@ def main():
     dens_spike = 3500
     spike_width = 5
     depths_spike_top = np.arange(0, 151, 5)
-    meas_depths = np.arange(0, 150, 15)
+    meas_depths = np.arange(0, 151, 15)
     meas_errors = np.array([0.1]*len(meas_depths))
     # parameters of inversion
     nu = 6.58E-4
