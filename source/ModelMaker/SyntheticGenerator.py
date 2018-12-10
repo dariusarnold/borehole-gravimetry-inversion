@@ -57,7 +57,7 @@ class SyntheticGenerator:
     @staticmethod
     def save_to_file(fname, density_model, measurement_depths, measurement_errors=None):
         """
-        Save the acceleration values for the given density model to a text file.
+        Save the synthetic data (acceleration measurement values) for the given density model to a text file.
         If errors are given, save them as well.
         Data is saved in three columns: depth (m), gravity acceleration (mGal), measurement error (mGal)
         :param fname: Filename in which synthetic data is saved

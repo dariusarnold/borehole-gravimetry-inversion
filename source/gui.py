@@ -27,6 +27,19 @@ def get_file_ending(filepath):
     return file_ending
 
 
+def change_file_ending(filepath, new_ending):
+    """
+
+    :param filepath: Doesn't have to have an extension before
+    :param new_ending: New extension without dot
+    :return:
+    """
+    if new_ending[0] == ".":
+        new_ending = new_ending.lstrip(1)
+    fname, fextension = os.path.splitext(filepath)
+    return f"{fname}.{new_ending}"
+
+
 class MyMenuBar(QMainWindow):
     def __init__(self, parent, *args, **kwargs):
         """
@@ -175,8 +188,9 @@ class ResolutionAnalysisDialog(QDialog):
 
         nu_l = QLabel("Enter lagrange multiplicator nu")
         self.nu_spinbox = QDoubleSpinBox(self)
-        self.nu_spinbox.setSingleStep(0.01)
+        self.nu_spinbox.setSingleStep(0.001)
         self.nu_spinbox.setMaximum(10000)
+        self.nu_spinbox.setDecimals(8)
         layout.addWidget(nu_l)
         layout.addWidget(self.nu_spinbox)
 
@@ -363,11 +377,29 @@ class MainApp(QMainWindow):
         if result == 0:
             return
         fname = "gui.dat"
-        save_synthetic_data(fname, dens_background, dens_spike, z1, z2-z1, meas_depths, meas_errors)
+        save_synthetic_data(fname, dens_background, dens_spike, z1, z2-z1, meas_depths, meas_errors, save_dm=True)
+        dens_model_fname = change_file_ending(fname, "dens")
+        model_depth, model_dens = self.load_density_from_file(dens_model_fname)
         if nu == 0:
             # this means optimal parameter is searched for
             nu = None
-        self.call_inversion_errors(fname, nu)
+        # TODO clearer mapping of norms to numbers (enum)
+        self.call_inversion_errors(fname, nu, norm_id=1)
+        # change file extension
+        # TODO density model and result of inversion have the same file ending. They are similar data after all. But differentiating them would be benefitial.
+        fname = change_file_ending(fname, "dens")
+        inversion_depth, inversion_dens = self.load_density_from_file(fname)
+        # convert to kg/m³
+        inversion_dens *= 1000
+        # TODO extract this plotting code
+        ax = self.p.fig.gca()
+        ax.clear()
+        ax.plot(model_depth, model_dens)
+        ax.plot(inversion_depth, inversion_dens)
+        ax.set_xlabel("Depth (m)")
+        ax.set_ylabel("Density (kg/m³)")
+        self.p.draw()
+
 
     def resolution_analysis_multiple(self):
         pass
@@ -438,7 +470,7 @@ class MainApp(QMainWindow):
             raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
         print(result)
 
-    def call_inversion_errors(self, filepath, nu=None):
+    def call_inversion_errors(self, filepath, nu=None, norm_id=None):
         """
         Call the inversion function for data with errors while optimizing the lagrange multiplicator nu
         :param filepath: path to file which contains measurement data with errors
@@ -451,7 +483,7 @@ class MainApp(QMainWindow):
         call_string = call_string.format(programm_path=progpath,
                                          input_path=filepath,
                                          discretization_steps=self.discretization_steps,
-                                         norm_id=self.norm_id,
+                                         norm_id=self.norm_id if norm_id is None else norm_id,
                                          nu="" if nu is None else nu)
         try:
             result = subprocess.check_output(call_string, shell=True)
