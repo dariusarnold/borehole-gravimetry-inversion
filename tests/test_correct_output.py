@@ -59,7 +59,8 @@ class TestInversionOutputErrors(unittest.TestCase):
     """
 
     def setUp(self):
-        self.norms = {"L2_errors": 0
+        self.norms = {"L2_errors": 0,
+                      "Seminorm_errors": 1
                       }
         self.input_file = os.path.join("data", "input_inversion_errors.dat")
         self.partial_correct_result_file = os.path.join("data", "output_inversion_{norm}.dens")
