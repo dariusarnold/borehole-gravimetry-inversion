@@ -55,7 +55,7 @@ std::vector<Result> LinearInterpolationNorm::calculate_density_distribution(uint
         // get beta out of alpha
         double f_of_x = alpha(alpha.rows()-1);
 
-        for (size_t j = 0; j != alpha.size()-1; ++j){
+        for (long int j = 0; j != alpha.size()-1; ++j){
             f_of_x += alpha[j] * representant_function(measurement_depths[j], x_value);
         }
         discretized_interpolated_function.emplace_back(Result{x_value, f_of_x});
