@@ -12,22 +12,18 @@ add_compile_options(-Wall -Wextra -pedantic -Weffc++ -Wshadow)
 # include Eigen
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-# include pybind11
-set(PYBIND11_CPP_STANDARD -std=gnu++17)
-# set the correct python version to use
-set(PYBIND11_PYTHON_VERSION 3.6)
-find_package(pybind11 REQUIRED)
 
 # Create the inversion library that I want to wrap
-add_library(Library source/MeasurementData.cpp source/MeasurementData.h source/GravimetryInversion.h source/FileIO.cpp source/FileIO.h source/Result.cpp source/Result.h source/Library.cpp source/Library.h source/Norms.cpp source/Norms.h source/ErrorNorms.cpp source/utils.h source/utils.cpp)
+add_library(GravInvLibrary "")
 # Enable -fPIC
-set_target_properties(Library PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+set_target_properties(GravInvLibrary PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
-# Create the python extension module
-pybind11_add_module(PyLibrary source/PyLibrary.cpp)
+#add_subdirectory(libGravimetryInversion)
+include(libGravimetryInversion/CMakeLists.txt)
 
 # Link liberaries
-target_link_libraries(Library PRIVATE Eigen3::Eigen)
+target_link_libraries(GravInvLibrary PRIVATE Eigen3::Eigen)
 #link library for filesystem support
-target_link_libraries(Library PRIVATE stdc++fs)
-target_link_libraries(PyLibrary PRIVATE Eigen3::Eigen Library)
+target_link_libraries(GravInvLibrary PRIVATE stdc++fs)
+
+add_subdirectory(python-bindings)

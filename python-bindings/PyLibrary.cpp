@@ -1,4 +1,4 @@
-#include "Library.h"
+#include "../libGravimetryInversion/Library.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
