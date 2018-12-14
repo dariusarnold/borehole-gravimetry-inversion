@@ -8,40 +8,26 @@ set(CMAKE_CXX_STANDARD 17)
 
 # set compiler warnings
 add_compile_options(-Wall -Wextra -pedantic -Weffc++ -Wshadow)
-# enable optimization for release build
-if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    message("Activating optimizations (-O3) for ${CMAKE_BUILD_TYPE} build type")
-    add_compile_options(-O3)
-endif()
 
-# compile under windows
-if (CYGWIN)
-    set(Eigen3_DIR "C:\\Eigen3")
-    # use system directive to supress warnings from Eigen library
-    include_directories(SYSTEM "${Eigen3_DIR}")
-    link_directories(${Eigen3_DIR})
-endif (CYGWIN)
-if (UNIX AND NOT CYGWIN)
-    find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-endif (UNIX AND NOT CYGWIN)
+# include Eigen
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-add_executable(Inversion main_inversion.cpp)
-add_executable(Interpolation main_interpolator.cpp)
-add_executable(Inversion_with_Errors main_inversion_with_errors.cpp)
+# include pybind11
+set(PYBIND11_CPP_STANDARD -std=gnu++17)
+# set the correct python version to use
+set(PYBIND11_PYTHON_VERSION 3.6)
+find_package(pybind11 REQUIRED)
 
-# set include directory so compiler finds my headers
-include_directories(source)
+# Create the inversion library that I want to wrap
+add_library(Library source/MeasurementData.cpp source/MeasurementData.h source/GravimetryInversion.h source/FileIO.cpp source/FileIO.h source/Result.cpp source/Result.h source/Library.cpp source/Library.h source/Norms.cpp source/Norms.h source/ErrorNorms.cpp source/utils.h source/utils.cpp)
+# Enable -fPIC
+set_target_properties(Library PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
-# include the CMakeLists that specifiy the sources for the targets
-include(source/CMakeLists.txt)
+# Create the python extension module
+pybind11_add_module(PyLibrary source/PyLibrary.cpp)
 
 # Link liberaries
-if (UNIX AND NOT CYGWIN)
-    target_link_libraries(Inversion Eigen3::Eigen)
-    target_link_libraries(Interpolation Eigen3::Eigen)
-    target_link_libraries(Inversion_with_Errors Eigen3::Eigen)
-endif (UNIX AND NOT CYGWIN)
+target_link_libraries(Library PRIVATE Eigen3::Eigen)
 #link library for filesystem support
-target_link_libraries(Inversion stdc++fs)
-target_link_libraries(Interpolation stdc++fs)
-target_link_libraries(Inversion_with_Errors stdc++fs)
+target_link_libraries(Library PRIVATE stdc++fs)
+target_link_libraries(PyLibrary PRIVATE Eigen3::Eigen Library)

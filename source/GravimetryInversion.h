@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include "FileIO.h"
 #include "Norms.h"
+#include "ModelParameters.h"
 
 // forward declaration
 struct Result;
@@ -55,7 +56,7 @@ public:
         gi.write_density_distribution_to_file(filepath);
     }
 
-    static void invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu=-1){
+    static std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu=-1){
         // read data from file
         auto [measurement_depths, measurement_data, measurement_errors] = read_measurement_data_with_errors(filepath);
         // create a norm instance using this data
@@ -66,6 +67,10 @@ public:
         }else{
             gi.result = gi.norm->do_work(steps, nu);
         }
+        // TODO implement parsing these
+        ModelParameters mp = {1, 2, 3};
+        auto p = std::make_pair(Eigen::VectorXd::Random(5), Eigen::VectorXd::Random(5));
+        return std::make_tuple(p, mp);
         filepath.replace_extension(".dens");
         gi.write_density_distribution_to_file(filepath);
     }
