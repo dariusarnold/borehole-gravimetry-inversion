@@ -13,3 +13,5 @@ data/*.int
 exercises/ex9/a?/res_ana_*
 
 *.pyc
+
+*.so
