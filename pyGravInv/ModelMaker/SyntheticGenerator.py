@@ -1,6 +1,6 @@
 import scipy.integrate as integrate
 import numpy as np
-from DensityModel import DensityModel, DiscretizedDensityModel
+from pyGravInv.ModelMaker.DensityModel import DensityModel, DiscretizedDensityModel
 
 
 def convert_ms2_to_mGal(val):
