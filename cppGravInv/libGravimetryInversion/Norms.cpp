@@ -2,6 +2,7 @@
 #include "Norms.h"
 #include "MeasurementData.h"
 #include "utils.h"
+#include "ModelParameters.h"
 
 
 Norm::Norm(const std::vector<double>& _measurement_depths, const std::vector<double>& _measurement_data) :
@@ -19,7 +20,7 @@ void Norm::gram_matrix_analytical() {
     }
 }
 
-std::vector<Result> Norm::calculate_density_distribution(uint64_t num_steps) {
+std::pair<Eigen::VectorXd, Eigen::VectorXd> Norm::calculate_density_distribution(uint64_t num_steps) {
     // fill depth vector with ascending values
     std::vector<double>  depth_meters;
     depth_meters.reserve(num_steps);
@@ -30,16 +31,20 @@ std::vector<Result> Norm::calculate_density_distribution(uint64_t num_steps) {
     }
     // discretize density distribution by evaluating the following formula
     // rho(z) = sum_k alpha_k g_k(z)
-    std::vector<Result> density;
-    density.reserve(num_steps);
+    std::vector<double> depth(num_steps);
+    std::vector<double> density(num_steps);
     for (auto discretization_depth : depth_meters){
         double dens = 0;
         for (long int j = 0; j != alpha.size(); ++j){
             dens += alpha[j] * representant_function(measurement_depths[j], discretization_depth);
         }
-        density.emplace_back(Result{discretization_depth, dens});
+        depth.push_back(discretization_depth);
+        density.push_back(dens);
     }
-    return density;
+    //TODO create these as Eigen types instead of converting them
+    Eigen::VectorXd depth_eigen = std_to_eigen(depth);
+    Eigen::VectorXd density_eigen = std_to_eigen(density);
+    return std::make_pair(depth_eigen, density_eigen);
 }
 
 void Norm::solve_for_alpha() {
@@ -49,11 +54,13 @@ void Norm::solve_for_alpha() {
     alpha = gram_matrix.colPivHouseholderQr().solve(data_vec);
 }
 
-std::vector<Result> Norm::do_work(uint64_t discretization_steps) {
+std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> Norm::do_work(uint64_t discretization_steps) {
     gram_matrix_analytical();
     solve_for_alpha();
-    auto density = calculate_density_distribution(discretization_steps);
-    return density;
+    auto result = calculate_density_distribution(discretization_steps);
+    ModelParameters params = {-1, -1, -1};
+    return std::make_tuple(result, params);
+
 }
 
 
@@ -68,17 +75,21 @@ ErrorNorm::ErrorNorm(const std::vector<double>& depth, const std::vector<double>
     sigma_matrix.diagonal() = sigma_vec;
 }
 
-std::vector<Result> ErrorNorm::do_work(uint64_t discretization_steps, double nu){
+std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> ErrorNorm::do_work(uint64_t discretization_steps, double nu){
     // either nu was given from user or calculated using bisection
     solve_for_alpha(nu);
     auto density = calculate_density_distribution(discretization_steps);
+    double misfit_squared_over_n = calculate_misfit(nu)/measurement_data.size();
+    double norm = ErrorNorm::calculate_norm();
+    ModelParameters params = {nu, misfit_squared_over_n, norm};
+    // TODO remove this print statement
     std::cout << "Nu: " << nu << std::endl;
     std::cout <<  "Misfit squared/N: " << calculate_misfit(nu)/measurement_data.size() << std::endl;
     std::cout << "Norm: " << ErrorNorm::calculate_norm() << std::endl;
-    return density;
+    return std::make_tuple(density, params);
 }
 
-std::vector<Result> ErrorNorm::do_work(uint64_t discretization_steps) {
+std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> ErrorNorm::do_work(uint64_t discretization_steps) {
     // calculate the lagrange multiplicator using bysection
     double nu_left_start = 0.00001;
     double nu_right_start = 10000;

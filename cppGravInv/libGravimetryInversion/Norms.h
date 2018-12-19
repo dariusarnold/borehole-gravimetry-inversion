@@ -6,6 +6,10 @@
 #include "Result.h"
 
 
+// forward declaration
+struct ModelParameters;
+
+
 struct Norm {
     Norm(const std::vector<double>& depth, const std::vector<double>& data);
     virtual ~Norm() = default;
@@ -14,7 +18,7 @@ struct Norm {
      * @param depth vector of depths or x values
      * @param data vector of measurement data points or function values associated with the x values
      */
-    virtual std::vector<Result> do_work(uint64_t discretization_steps);
+    virtual std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> do_work(uint64_t discretization_steps);
 protected:
     /**
     * Evaluate alpha and representants to discretize a density distribution
@@ -22,7 +26,7 @@ protected:
     * @param num_steps Number of steps to use for discretizing density distribution
     * @return
     */
-    virtual std::vector<Result>  calculate_density_distribution(uint64_t num_steps);
+    virtual std::pair<Eigen::VectorXd, Eigen::VectorXd> calculate_density_distribution(uint64_t num_steps);
     /**
      * Calculate the coefficients alpha by solving the system of equations given as:
      * \vec{d} = \Gamma \vec{\alpha}}
@@ -101,7 +105,7 @@ struct Seminorm : public Norm{
      */
     void solve_for_alpha() override;
 
-    std::vector<Result>  calculate_density_distribution(uint64_t num_steps) override;
+    std::pair<Eigen::VectorXd, Eigen::VectorXd> calculate_density_distribution(uint64_t num_steps) override;
 };
 
 
@@ -119,13 +123,14 @@ struct LinearInterpolationNorm : public Norm{
 
     void gram_matrix_analytical() override;
     void solve_for_alpha() override;
-    std::vector<Result> calculate_density_distribution(uint64_t num_steps) override;
+    std::pair<Eigen::VectorXd, Eigen::VectorXd> calculate_density_distribution(uint64_t num_steps) override;
 private:
     double a;
     double b;
 };
 
 
+// abstract base class for all norms that handle data with measurement errors
 struct ErrorNorm : public Norm{
     ErrorNorm(const std::vector<double>& depth, const std::vector<double>& data, const std::vector<double>& errors);
     ~ErrorNorm() override = default;
@@ -135,13 +140,13 @@ struct ErrorNorm : public Norm{
      * smaller nu weights the norm over the misfit
      * @param discretization_steps number of steps used to discretize the inverted density model
      */
-    virtual std::vector<Result> do_work(uint64_t discretization_steps, double nu);
+    std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> do_work(uint64_t discretization_steps, double nu);
     /**
      * Do the inversion for a misfit threshold of T² = N, where N is the number of measurement points.
      * Optimal lagrange multiplicator is determined by bisection search, so that the misfit fully uses the threshold.
      * @param discretization_steps number of steps used to discretize the inverted density model
      */
-    std::vector<Result> do_work(uint64_t discretization_steps) override;
+    std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> do_work(uint64_t discretization_steps) override;
 protected:
     /**
      * Calculate the misfit X² using the formula nu^-2 | sigma * alpha |²
@@ -175,8 +180,6 @@ struct SemiErrorNorm : public ErrorNorm{
     void gram_matrix_analytical(double nu);
     double calculate_misfit(double nu) override;
     void solve_for_alpha(double nu) override;
-    std::vector<Result> calculate_density_distribution(uint64_t num_steps) override;
-
 };
 
 #endif //GRAVITYINVERSION_NORM_H

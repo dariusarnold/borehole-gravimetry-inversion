@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
         if (argc == 5){
             nu = std::stod(argv[4]);
         }
+        // TODO implement handling the return values here somewhere
         switch (atoi(argv[3])){
             case 0:
                 GravimetryInversion<L2ErrorNorm>::invert_data_from_file_with_errors(filepath, steps, nu);
@@ -46,6 +47,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Enter valid norm id" << std::endl;
                 return -1;
         }
+
         return 0;
     }
 }

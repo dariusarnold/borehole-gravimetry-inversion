@@ -38,7 +38,7 @@ void LinearInterpolationNorm::solve_for_alpha() {
     Norm::solve_for_alpha();
 }
 
-std::vector<Result> LinearInterpolationNorm::calculate_density_distribution(uint64_t num_steps) {
+std::pair<Eigen::VectorXd, Eigen::VectorXd> LinearInterpolationNorm::calculate_density_distribution(uint64_t num_steps) {
     // fill depth vector with ascending values
     std::vector<double>  interpolated_x_values;
     interpolated_x_values.reserve(num_steps);
@@ -49,8 +49,8 @@ std::vector<Result> LinearInterpolationNorm::calculate_density_distribution(uint
     }
     // discretize density distribution by evaluating the following formula
     // rho(z) = sum_k alpha_k g_k(z)
-    std::vector<Result> discretized_interpolated_function;
-    discretized_interpolated_function.reserve(num_steps);
+    std::vector<double> x(num_steps);;
+    std::vector<double> y(num_steps);
     for (auto x_value : interpolated_x_values){
         // get beta out of alpha
         double f_of_x = alpha(alpha.rows()-1);
@@ -58,7 +58,10 @@ std::vector<Result> LinearInterpolationNorm::calculate_density_distribution(uint
         for (long int j = 0; j != alpha.size()-1; ++j){
             f_of_x += alpha[j] * representant_function(measurement_depths[j], x_value);
         }
-        discretized_interpolated_function.emplace_back(Result{x_value, f_of_x});
+        x.push_back(x_value);
+        y.push_back(f_of_x);
     }
-    return discretized_interpolated_function;
+    Eigen::VectorXd x_eigen = std_to_eigen(x);
+    Eigen::VectorXd y_eigen = std_to_eigen(y);
+    return std::make_pair(x_eigen, y_eigen);
 }

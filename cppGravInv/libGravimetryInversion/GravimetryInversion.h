@@ -11,10 +11,6 @@
 // forward declaration
 struct Result;
 
-
-// set type for iterating over vectors from GravimetryInversion
-typedef std::vector<double>::size_type vec_size_t;
-
 namespace fs = std::experimental::filesystem;
 
 /**
@@ -46,14 +42,12 @@ public:
      * One depth/gravity pair per line, line ending \n
      * @param steps Number of discretization steps to use for density distribution
      */
-    static void invert_data_from_file(fs::path& filepath, uint64_t steps) {
+    static std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> invert_data_from_file(fs::path& filepath, uint64_t steps) {
         // read data from file
         auto [measurement_depths, measurement_data] = read_measurement_data_no_errors(filepath);
         auto _norm = std::make_unique<Norm_Type>(measurement_depths, measurement_data);
         GravimetryInversion gi(std::move(_norm), steps);
-        gi.result = gi.norm->do_work(steps);
-        filepath.replace_extension({".dens"});
-        gi.write_density_distribution_to_file(filepath);
+        return gi.norm->do_work(steps);
     }
 
     static std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> invert_data_from_file_with_errors(fs::path& filepath, uint64_t steps, double nu=-1){
@@ -63,16 +57,10 @@ public:
         auto _norm = std::make_unique<Norm_Type>(measurement_depths, measurement_data, measurement_errors);
         GravimetryInversion gi(std::move(_norm), steps);
         if (nu < 0) {
-            gi.result = gi.norm->do_work(steps);
+            return gi.norm->do_work(steps);
         }else{
-            gi.result = gi.norm->do_work(steps, nu);
+            return gi.norm->do_work(steps, nu);
         }
-        // TODO implement parsing these
-        ModelParameters mp = {1, 2, 3};
-        auto p = std::make_pair(Eigen::VectorXd::Random(5), Eigen::VectorXd::Random(5));
-        return std::make_tuple(p, mp);
-        filepath.replace_extension(".dens");
-        gi.write_density_distribution_to_file(filepath);
     }
 
     /**
@@ -84,12 +72,10 @@ public:
      * @param a lower boundary of evaluation interval
      * @param b upper boundary of evaluation interval
      */
-    static void interpolate_data_from_file(fs::path& filepath, uint64_t steps, double a, double b){
+    static std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> interpolate_data_from_file(fs::path& filepath, uint64_t steps, double a, double b){
         auto [x_values, y_values] = read_function_data(filepath);
         GravimetryInversion gi(std::unique_ptr<Norm_Type>(new Norm_Type(a, b, x_values, y_values)), steps);
-        gi.result = gi.norm->do_work(steps);
-        filepath.replace_extension({".int"});
-        gi.write_density_distribution_to_file(filepath);
+        return gi.norm->do_work(steps);
     }
 
 
