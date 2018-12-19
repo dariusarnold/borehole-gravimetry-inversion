@@ -1,7 +1,24 @@
+cmake_minimum_required(VERSION 3.13)
 set(CMAKE_CXX_STANDARD 17)
 
 # set compiler warnings
 add_compile_options(-Wall -Wextra -pedantic -Weffc++ -Wshadow)
+
+# include Eigen
+# compile under windows
+if (CYGWIN)
+    message(STATUS "Using manually installed Eigen library on windows")
+    set(Eigen3_DIR "C:\\Eigen3\\")
+    # use system directive to supress warnings from Eigen library
+    include_directories(SYSTEM "${Eigen3_DIR}")
+    link_directories(${Eigen3_DIR})
+endif (CYGWIN)
+if (UNIX AND NOT CYGWIN)
+    message(STATUS "Using Eigen installed from package manager")
+    find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+else()
+    message(STATUS "On Unix but haven't found Eigen3")
+endif (UNIX AND NOT CYGWIN)
 
 # Create the inversion library that I want to wrap
 add_library(GravInvLibrary libGravimetryInversion/GravimetryInversion.h)
@@ -18,7 +35,7 @@ add_executable(Interpolation main_interpolator.cpp)
 add_executable(Inversion main_inversion.cpp)
 add_executable(Inversion_Error main_inversion_with_errors.cpp)
 
-# Link liberaries
+# Link libraries
 if (UNIX AND NOT CYGWIN)
     target_link_libraries(GravInvLibrary PUBLIC Eigen3::Eigen)
 endif (UNIX AND NOT CYGWIN)
