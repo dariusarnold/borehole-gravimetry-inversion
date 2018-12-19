@@ -1,16 +1,24 @@
-#cmake_minimum_required(VERSION 3.10)
-#project(GravityInversion)
-
 # include pybind11
 set(PYBIND11_CPP_STANDARD -std=gnu++17)
 # set the correct python version to use
 set(PYBIND11_PYTHON_VERSION 3.6)
-find_package(pybind11 REQUIRED)
+
+if (CYGWIN)
+    # on windows, use local version
+    add_subdirectory(pybind11)
+endif (CYGWIN)
+if (UNIX AND NOT CYGWIN)
+    find_package(pybind11 REQUIRED)
+endif (UNIX AND NOT CYGWIN)
 
 # Create the python extension module
 pybind11_add_module(PyLibrary PyLibrary.cpp)
 
-target_link_libraries(PyLibrary PRIVATE Eigen3::Eigen GravInvLibrary)
+if (UNIX AND NOT CYGWIN)
+    target_link_libraries(PyLibrary PRIVATE Eigen3::Eigen GravInvLibrary)
+else()
+    target_link_libraries(PyLibrary PRIVATE GravInvLibrary ${PYTHON_LIBRARIES})
+endif (UNIX AND NOT CYGWIN)
 
 # add install rule
 install(TARGETS PyLibrary DESTINATION ${CMAKE_INSTALL_PREFIX}/pyGravInv)

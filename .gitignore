@@ -15,3 +15,5 @@ exercises/ex9/a?/res_ana_*
 *.pyc
 
 *.so
+
+cppGravInv/python-bindings/pybind11/
