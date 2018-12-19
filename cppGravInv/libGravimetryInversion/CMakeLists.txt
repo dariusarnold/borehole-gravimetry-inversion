@@ -1,4 +1,4 @@
-target_sources(GravInvLibrary PUBLIC
+target_sources(GravInvLibrary PRIVATE
         Library.cpp
         MeasurementData.cpp
         FileIO.cpp
