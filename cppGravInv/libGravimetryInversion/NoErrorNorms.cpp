@@ -66,7 +66,7 @@ void Seminorm::solve_for_alpha() {
 }
 
 std::pair<Eigen::VectorXd, Eigen::VectorXd> Seminorm::calculate_density_distribution(uint64_t num_steps) {
-    std::pair<Eigen::VectorXd, Eigen::VectorXd> depth_dens = calculate_density_distribution(num_steps);
+    std::pair<Eigen::VectorXd, Eigen::VectorXd> depth_dens = Norm::calculate_density_distribution(num_steps);
     auto density_constant = alpha(alpha.rows()-1);
     depth_dens.second.array() -= density_constant;
     return depth_dens;
