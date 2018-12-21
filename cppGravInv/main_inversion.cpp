@@ -7,7 +7,7 @@
 
 namespace fs = std::experimental::filesystem;
 
-
+//TODO refactor to use only the Library.h functions
 /**
  * Call programm with positional arguments:
  * 1. input measurement data filepath
@@ -29,20 +29,28 @@ int main(int argc, char* argv[]) {
         // read command line parameters
         fs::path filepath{argv[1]};
         uint64_t steps = std::stoul(argv[2]);
+        std::pair<Eigen::VectorXd, Eigen::VectorXd> depth_dens;
+        ModelParameters params;
         switch (atoi(argv[3])){
             case 0:
-                GravimetryInversion<L2_Norm>::invert_data_from_file(filepath, steps);
+                std::tie(depth_dens, params) = GravimetryInversion<L2_Norm>::invert_data_from_file(filepath, steps);
                 break;
             case 1:
-                GravimetryInversion<W12_Norm>::invert_data_from_file(filepath, steps);
+                std::tie(depth_dens, params) = GravimetryInversion<W12_Norm>::invert_data_from_file(filepath, steps);
                 break;
             case 2:
-                GravimetryInversion<Seminorm>::invert_data_from_file(filepath, steps);
+                std::tie(depth_dens, params) = GravimetryInversion<Seminorm>::invert_data_from_file(filepath, steps);
                 break;
             default:
                 std::cout << "Enter valid norm id" << std::endl;
                 return -1;
         }
+        // print the Inversion parameters
+        std::cout << params;
+        // save Inversion results in file
+        FileIO fw;
+        filepath.replace_extension(".dens");
+        fw.writeData(depth_dens, filepath);
         return 0;
     }
 }

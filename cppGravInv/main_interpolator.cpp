@@ -1,9 +1,8 @@
 #include <iostream>
 #include <experimental/filesystem>
 
-#include "GravimetryInversion.h"
-#include "Norms.h"
-
+#include "Library.h"
+#include "FileIO.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -31,7 +30,13 @@ int main(int argc, char* argv[]) {
         uint64_t steps = std::stoul(argv[2]);
         double a = std::stod(argv[3]);
         double b = std::stod(argv[4]);
-        GravimetryInversion<LinearInterpolationNorm>::interpolate_data_from_file(filepath, steps, a, b);
+        auto [x_y, params] = interpolation(filepath, InterpolationNorms::LinearInterpolationNorm, a, b, steps);
+        // print the Inversion parameters
+        std::cout << params;
+        // save Inversion results in file
+        FileIO fw;
+        filepath.replace_extension(".int");
+        fw.writeData(x_y, filepath);
         return 0;
     }
 }

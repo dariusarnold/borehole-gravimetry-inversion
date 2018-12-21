@@ -9,6 +9,7 @@
 #include <experimental/filesystem>
 #include <fstream>
 #include <iterator>
+#include <Eigen/Dense>
 
 // forward declaration
 struct Result;
@@ -25,7 +26,7 @@ public:
       * @param result Vector of Results structs, containing depth/density pairs
       * @param filepath full path with filename in which file is created
       */
-    void writeData(const std::vector<Result>& result, const fs::path& filepath);
+     void writeData(std::pair<Eigen::VectorXd, Eigen::VectorXd>& result, const fs::path &filepath);
 
     /**
      * Write the discretized version of the interpolated function into a file

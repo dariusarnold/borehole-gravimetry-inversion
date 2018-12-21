@@ -1,11 +1,12 @@
 """
-Genereate snythetic density measurements
+Generate synthetic density measurements
 """
 
 import numpy as np
 
-from DensityModel import DensityModel, make_model_fromfile
-from SyntheticGenerator import SyntheticGenerator
+from pyGravInv.ModelMaker.DensityModel import DensityModel
+from pyGravInv.ModelMaker.SyntheticGenerator import SyntheticGenerator
+from pyGravInv.ModelMaker.DensityModel import make_model_fromfile
 
 
 def save_synthetic_data(fname, density_background, density_spike, spike_top, spike_width, measurement_depths,
@@ -25,6 +26,9 @@ def save_synthetic_data(fname, density_background, density_spike, spike_top, spi
     :return: None
     """
     dm = DensityModel(density_background, spike_top, spike_width, density_spike)
+    measurement_depths = np.array(measurement_depths)
+    if measurement_errors is not None:
+        measurement_errors = np.array(measurement_errors)
     if save_dm:
         path, extension = fname.split(".")
         dfname = path + ".dens"

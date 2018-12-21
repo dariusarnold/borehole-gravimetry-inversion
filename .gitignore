@@ -10,6 +10,10 @@ data/*.dens
 data/*.int
 *.csv
 # ignore the numerous files that are created from a resolution analysis
-ex9/a?/res_ana_*
+exercises/ex9/a?/res_ana_*
 
 *.pyc
+
+*.so
+
+cppGravInv/python-bindings/pybind11/

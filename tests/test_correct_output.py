@@ -1,7 +1,11 @@
-import unittest
-import os
 import filecmp
+import os
+import unittest
 import warnings
+
+import numpy as np
+
+import pyGravInv
 
 
 class TestInversionOutput(unittest.TestCase):
@@ -25,32 +29,17 @@ class TestInversionOutput(unittest.TestCase):
         :param norm_id:
         :return:
         """
-        progname = "Inversion.exe" if os.name == 'nt' else "Inversion"
-        prog_path = os.path.join("..", "cmake-build-debug", progname)
-        call_string = "{programm_path} {input_path} {discretization_steps} {norm_id}"
-        # discretzation_steps: Number of steps that are applied to discretize the resulting density distribution.
-        call_string = call_string.format(programm_path=prog_path,
-                                         input_path=filename,
-                                         discretization_steps=10000,
-                                         norm_id=norm_id)
-        os.system(call_string)
-        output_filename = filename.replace(".dat", ".dens")
-        return output_filename
+        (depth, dens), params = pyGravInv.inversion(filename, pyGravInv.Norm(norm_id), discretization_steps=10000)
+        return depth, dens
 
     def test_norms(self):
         for norm_name, norm_id in self.norms.items():
             with self.subTest(norm_name=norm_name, norm_id=norm_id):
                 correct_file = self.partial_correct_result_file.format(norm=norm_name)
-                output_filename = self.call_inversion_function(self.input_file, norm_id)
-                error_message = """
-                {norm_name}: Results are not the same. Compare files:
-                Expected: {expected}
-                Got: {got}""".format(norm_name=norm_name, expected=correct_file, got=output_filename)
-                self.assertTrue(filecmp.cmp(correct_file, output_filename, shallow=False), error_message)
-                try:
-                    os.remove(output_filename)
-                except OSError:
-                    warnings.warn("Couldn't delete file {}".format(output_filename))
+                correct_depth, correct_dens = np.loadtxt(correct_file, unpack=True)
+                actual_depth, actual_dens = self.call_inversion_function(self.input_file, norm_id)
+                np.testing.assert_array_almost_equal(correct_depth, actual_depth, decimal=2)
+                np.testing.assert_array_almost_equal(correct_dens, actual_dens, decimal=2)
 
 
 class TestInversionOutputErrors(unittest.TestCase):
@@ -67,32 +56,17 @@ class TestInversionOutputErrors(unittest.TestCase):
 
     @staticmethod
     def call_inversion_function(filename, norm_id):
-        progname = "Inversion_with_Errors.exe" if os.name == 'nt' else "Inversion_with_Errors"
-        prog_path = os.path.join("..", "cmake-build-debug", progname)
-        call_string = "{prog_path} {input_path} {discretization_steps} {norm_id}"
-        call_string = call_string.format(prog_path=prog_path,
-                                         input_path=filename,
-                                         discretization_steps=10000,
-                                         norm_id=norm_id)
-        os.system(call_string)
-        output_filename = filename.replace(".dat", ".dens")
-        return output_filename
+        (depth, dens), params = pyGravInv.inversion_error(filename, pyGravInv.ErrorNorm(norm_id), discretization_steps=10000)
+        return depth, dens
 
     def test_norms(self):
         for norm_name, norm_id in self.norms.items():
             with self.subTest(norm_name=norm_name, norm_id=norm_id):
                 correct_file = self.partial_correct_result_file.format(norm=norm_name)
-                output_filename = self.call_inversion_function(self.input_file, norm_id)
-                error_message = """
-                    {norm_name}: Results are not the same. Compare files:
-                    Expected: {expected}
-                    Got: {got}""".format(norm_name=norm_name, expected=correct_file, got=output_filename)
-                self.assertTrue(filecmp.cmp(correct_file, output_filename, shallow=False), error_message)
-                try:
-                    pass
-                    #os.remove(output_filename)
-                except OSError:
-                    warnings.warn("Couldn't delete file {}".format(output_filename))
+                correct_depth, correct_dens = np.loadtxt(correct_file, unpack=True)
+                actual_depth, actual_dens = self.call_inversion_function(self.input_file, norm_id)
+                np.testing.assert_array_almost_equal(correct_depth, actual_depth, decimal=2)
+                np.testing.assert_array_almost_equal(correct_dens, actual_dens, decimal=2)
 
 
 class TestInterpolationOutput(unittest.TestCase):
@@ -106,35 +80,17 @@ class TestInterpolationOutput(unittest.TestCase):
     @staticmethod
     def call_interpolation_function(filename):
         """
-        Call the interpolation program and return the filename of the output file
-        :param filename:
-        :return:
+        Call the interpolation program and return the x, f(x) values of the interpolated function
         """
-        progname = "Interpolation.exe" if os.name == "nt" else "Interpolation"
-        prog_path = os.path.join("..", "cmake-build-debug", progname)
-        call_string = "{programm_path} {input_path} {discretization_steps} {lower_bound} {upper_bound}"
-        call_string = call_string.format(programm_path=prog_path,
-                                         input_path=filename,
-                                         discretization_steps=10000,
-                                         lower_bound=0,
-                                         upper_bound=10)
-        os.system(call_string)
-        output_filename = filename.replace(".dat", ".int")
-        return output_filename
+        (x, y), params = pyGravInv.interpolate(filename, pyGravInv.InterpolationNorm.LinearInterpolationNorm, 0, 10, 10000)
+        return x, y
 
     def test_interpolation(self):
-        output_filename = self.call_interpolation_function(self.input_file)
-        error_message = """
-        Interpolation: Results are not the same. Compare files:
-        Expected: {expected}
-        Got: {got}""".format(expected=self.correct_result_file, got=output_filename)
-        print(output_filename, self.correct_result_file)
-        self.assertTrue(filecmp.cmp(self.correct_result_file, output_filename, shallow=False), error_message)
-        try:
-            os.remove(output_filename)
-        except OSError:
-            warnings.warn("Couldn't delete file {}".format(output_filename))
-
+        correct_file = os.path.join("data", "output_interpolation.int")
+        actual_x, actual_y = self.call_interpolation_function(self.input_file)
+        correct_x, correct_y = np.loadtxt(correct_file, unpack=True)
+        np.testing.assert_array_almost_equal(correct_x, actual_x, decimal=2)
+        np.testing.assert_array_almost_equal(correct_y, actual_y, decimal=2)
 
 def main():
     # Calling the script from the outside wont set cwd automatically, so relative paths only work when

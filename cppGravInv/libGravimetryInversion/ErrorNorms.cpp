@@ -74,9 +74,10 @@ double SemiErrorNorm::calculate_misfit(double nu) {
     return betrag*betrag;
 }
 
-std::vector<Result> SemiErrorNorm::calculate_density_distribution(uint64_t num_steps) {
-    std::vector<Result> density_variable = ErrorNorm::calculate_density_distribution(num_steps);
+std::pair<Eigen::VectorXd, Eigen::VectorXd> SemiErrorNorm::calculate_density_distribution(uint64_t num_steps) {
+    // TODO this is the same as in SemiNorm, maybe we can derive from that as well an inherit it?
+    std::pair<Eigen::VectorXd, Eigen::VectorXd> depth_dens = ErrorNorm::calculate_density_distribution(num_steps);
     auto density_constant = alpha(alpha.rows()-1);
-    std::for_each(density_variable.begin(), density_variable.end(), [density_constant](Result& x){x.density +=density_constant; });
-    return density_variable;
+    depth_dens.second.array() += density_constant;
+    return depth_dens;
 }
