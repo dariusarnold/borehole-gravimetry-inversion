@@ -23,16 +23,15 @@ void Norm::gram_matrix_analytical() {
 std::pair<Eigen::VectorXd, Eigen::VectorXd> Norm::calculate_density_distribution(uint64_t num_steps) {
     // fill depth vector with ascending values
     std::vector<double>  depth_meters;
-    depth_meters.reserve(num_steps);
     double stepsize = measurement_depths.back() / num_steps;
     // num_steps + 2 to get one step past the end to see the L2 norm falling to zero
     for (size_t i = 0; i != num_steps+2; ++i){
-        depth_meters.emplace_back(stepsize * i);
+        depth_meters.push_back(stepsize * i);
     }
     // discretize density distribution by evaluating the following formula
     // rho(z) = sum_k alpha_k g_k(z)
-    std::vector<double> depth(num_steps);
-    std::vector<double> density(num_steps);
+    std::vector<double> depth;
+    std::vector<double> density;
     for (auto discretization_depth : depth_meters){
         double dens = 0;
         for (long int j = 0; j != alpha.size(); ++j){
