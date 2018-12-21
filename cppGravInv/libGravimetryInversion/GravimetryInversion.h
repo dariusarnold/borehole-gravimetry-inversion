@@ -106,7 +106,7 @@ private:
       */
      void write_density_distribution_to_file(const fs::path& filepath){
          FileIO fw;
-         fw.writeData(result, filepath);
+         //fw.writeData(result, filepath);
      }
 
     std::vector<double> measurement_depths;

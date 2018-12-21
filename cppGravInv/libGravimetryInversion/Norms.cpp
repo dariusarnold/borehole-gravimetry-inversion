@@ -81,10 +81,6 @@ std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters> ErrorNo
     double misfit_squared_over_n = calculate_misfit(nu)/measurement_data.size();
     double norm = ErrorNorm::calculate_norm();
     ModelParameters params = {nu, misfit_squared_over_n, norm};
-    // TODO remove this print statement
-    std::cout << "Nu: " << nu << std::endl;
-    std::cout <<  "Misfit squared/N: " << calculate_misfit(nu)/measurement_data.size() << std::endl;
-    std::cout << "Norm: " << ErrorNorm::calculate_norm() << std::endl;
     return std::make_tuple(density, params);
 }
 

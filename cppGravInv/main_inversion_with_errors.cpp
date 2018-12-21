@@ -1,8 +1,8 @@
 #include <iostream>
 #include <experimental/filesystem>
 
-#include "GravimetryInversion.h"
-#include "Norms.h"
+#include "FileIO.h"
+#include "Library.h"
 
 
 namespace fs = std::experimental::filesystem;
@@ -35,19 +35,27 @@ int main(int argc, char* argv[]) {
         if (argc == 5){
             nu = std::stod(argv[4]);
         }
-        // TODO implement handling the return values here somewhere
+        std::pair<Eigen::VectorXd, Eigen::VectorXd> depth_dens;
+        ModelParameters params;
         switch (atoi(argv[3])){
             case 0:
-                GravimetryInversion<L2ErrorNorm>::invert_data_from_file_with_errors(filepath, steps, nu);
+                //std::tie(depth_dens, params) = GravimetryInversion<L2ErrorNorm>::invert_data_from_file_with_errors(filepath, steps, nu);
+                std::tie(depth_dens, params) = inversion_error(filepath, ErrorNorms::L2ErrorNorm, steps, nu);
                 break;
             case 1:
-                GravimetryInversion<SemiErrorNorm>::invert_data_from_file_with_errors(filepath, steps, nu);
+                //std::tie(depth_dens, params) = GravimetryInversion<SemiErrorNorm>::invert_data_from_file_with_errors(filepath, steps, nu);
+                std::tie(depth_dens, params) = inversion_error(filepath, ErrorNorms::SemiErrorNorm, steps, nu);
                 break;
             default:
                 std::cout << "Enter valid norm id" << std::endl;
                 return -1;
         }
-
+        // print the Inversion parameters
+        std::cout << params;
+        // save Inversion results in file
+        FileIO fw;
+        filepath.replace_extension(".dens");
+        fw.writeData(depth_dens, filepath);
         return 0;
     }
 }

@@ -6,15 +6,16 @@
 #include <iterator>
 
 #include "FileIO.h"
-#include "Result.h"
 #include "MeasurementData.h"
 #include <stdexcept>
 
-void FileIO::writeData(const std::vector<Result> &result, const fs::path &filepath){
+void FileIO::writeData(std::pair<Eigen::VectorXd, Eigen::VectorXd>& result, const fs::path &filepath){
     std::ofstream file;
     file.open(filepath);
-    for (auto depth_value_pair : result){
-        file << depth_value_pair;
+    Eigen::VectorXd depth = result.first;
+    Eigen::VectorXd dens = result.second;
+    for (size_t i = 0; i < depth.rows(); ++i){
+        file << depth(i) << " " << dens(i) <<"\n";
     }
     file.close();
 }
