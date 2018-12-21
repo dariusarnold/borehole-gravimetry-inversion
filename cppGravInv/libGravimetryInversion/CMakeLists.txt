@@ -8,5 +8,6 @@ target_sources(GravInvLibrary PRIVATE
         NoErrorNorms.cpp
         ErrorNorms.cpp
         InterpolationNorm.cpp
+        ModelParameters.cpp
         )
 

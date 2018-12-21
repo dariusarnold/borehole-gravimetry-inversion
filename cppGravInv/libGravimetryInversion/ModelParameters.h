@@ -1,6 +1,7 @@
 #ifndef GRAVITYINVERSION_MODELPARAMETERS_H
 #define GRAVITYINVERSION_MODELPARAMETERS_H
 
+#include <ostream>
 
 /*
  * Describes the parameters of a model resulting from the GravimetryInversion
@@ -14,5 +15,7 @@ struct ModelParameters{
     double norm;
 };
 
+
+std::ostream& operator<<(std::ostream& os, const ModelParameters& mp);
 
 #endif //GRAVITYINVERSION_MODELPARAMETERS_H
