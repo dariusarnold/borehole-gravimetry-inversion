@@ -14,7 +14,7 @@ void FileIO::writeData(std::pair<Eigen::VectorXd, Eigen::VectorXd>& result, cons
     file.open(filepath);
     Eigen::VectorXd depth = result.first;
     Eigen::VectorXd dens = result.second;
-    for (size_t i = 0; i < depth.rows(); ++i){
+    for (long int i = 0; i < depth.rows(); ++i){
         file << depth(i) << " " << dens(i) <<"\n";
     }
     file.close();
