@@ -1,7 +1,7 @@
+#include <experimental/filesystem>
 #include "Library.h"
 #include "GravimetryInversion.h"
-#include <experimental/filesystem>
-
+#include "Norms.h"
 
 
 namespace fs = std::experimental::filesystem;
@@ -26,9 +26,9 @@ std::tuple<std::pair<Eigen::VectorXd, Eigen::VectorXd>, ModelParameters>
         inversion_error(const std::string& filepath, ErrorNorms norm_id, uint64_t discretization_steps, double nu){
     auto fpath = fs::path(filepath);
     switch(norm_id){
-        case ErrorNorms ::L2ErrorNorm:
+        case ErrorNorms::L2ErrorNorm:
             return GravimetryInversion<L2ErrorNorm>::invert_data_from_file_with_errors(fpath, discretization_steps, nu);
-        case ErrorNorms ::SemiErrorNorm:
+        case ErrorNorms::SemiErrorNorm:
             return GravimetryInversion<SemiErrorNorm>::invert_data_from_file_with_errors(fpath, discretization_steps, nu);
         default:
             return GravimetryInversion<L2ErrorNorm>::invert_data_from_file_with_errors(fpath, discretization_steps, nu);

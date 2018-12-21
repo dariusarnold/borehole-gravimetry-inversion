@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <Eigen/Dense>
-#include "Result.h"
 
 
 // forward declaration
