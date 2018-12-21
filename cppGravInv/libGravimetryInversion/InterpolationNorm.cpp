@@ -49,8 +49,8 @@ std::pair<Eigen::VectorXd, Eigen::VectorXd> LinearInterpolationNorm::calculate_d
     }
     // discretize density distribution by evaluating the following formula
     // rho(z) = sum_k alpha_k g_k(z)
-    std::vector<double> x(num_steps);;
-    std::vector<double> y(num_steps);
+    std::vector<double> x;
+    std::vector<double> y;
     for (auto x_value : interpolated_x_values){
         // get beta out of alpha
         double f_of_x = alpha(alpha.rows()-1);
