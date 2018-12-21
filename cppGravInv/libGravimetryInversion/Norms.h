@@ -180,6 +180,7 @@ struct SemiErrorNorm : public ErrorNorm{
     void gram_matrix_analytical(double nu);
     double calculate_misfit(double nu) override;
     void solve_for_alpha(double nu) override;
+    std::pair<Eigen::VectorXd, Eigen::VectorXd> calculate_density_distribution(uint64_t num_steps) override;
 };
 
 #endif //GRAVITYINVERSION_NORM_H
