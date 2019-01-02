@@ -125,10 +125,6 @@ def matrix_A(measurement_depths, measurement_errors, inversion_depths):
     return A
 
 
-def print_helper(condition):
-    return "OK" if condition else "FAIL"
-
-
 def do_SVD(fname):
     """
 
@@ -156,6 +152,12 @@ def get_NL(fname):
     return N, L
 
 
+def print_check_result(name, check):
+    print_helper = lambda condition: "OK" if condition else "FAIL"
+    s = f"{name:<14} {print_helper(check):.>6}"
+    print(s)
+
+
 def ex11_1(fname):
     V, Lambda, U_transposed = do_SVD(fname)
     N, L = get_NL(fname)
@@ -166,14 +168,14 @@ def ex11_1(fname):
     VVT = np.dot(V, V_transposed)
     I_N = np.identity(N)
     I_L = np.identity(L)
-    print("V^T*V == V*V^T:", print_helper(np.allclose(VTV, VVT)))
-    print("V^T*V == I_N:", print_helper(np.allclose(VTV, I_N)))
+    print_check_result(name="V^T*V == V*V^T", check=np.allclose(VTV, VVT))
+    print_check_result(name="V^T*V == I_N", check=np.allclose(VTV, I_N))
     #next condition
     U = np.transpose(U_transposed)
     UUT = np.dot(U, U_transposed)
     UTU = np.dot(U_transposed, U)
-    print("U^TU == I_N:", print_helper(np.allclose(UTU, I_N)))
-    print("UU^T != I_L:", print_helper(not np.allclose(UUT, I_L)))
+    print_check_result(name="U^T*U == I_N", check=np.allclose(UTU, I_N))
+    print_check_result(name="U*U^T != I_L", check=not np.allclose(UUT, I_L))
 
 
 def get_inversion_depth_steps(measurement_depths, num_steps=10000):
