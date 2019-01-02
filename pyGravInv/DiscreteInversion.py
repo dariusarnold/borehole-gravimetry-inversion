@@ -209,7 +209,7 @@ def ex11_2(fname):
     # calculate new data
     d_double_prime = new_data(measurement_dens, np.transpose(V),  measurement_errors)
     # calculate misfit for multiple values of nu
-    range_of_nus = np.logspace(1E-6, 1E2, 10000)
+    range_of_nus = np.logspace(-2, 2, 1000)
     range_of_chis = np.array([misfit_squared(d_double_prime, nu, Lambda) for nu in range_of_nus])
     plt.plot(range_of_nus, range_of_chis, ".")
     plt.show()
