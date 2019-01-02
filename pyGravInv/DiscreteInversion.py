@@ -130,8 +130,8 @@ def print_helper(condition):
 
 def ex11_1():
     # invert the data
-    (inversion_depths, inversion_dens), _ = pyGravInv.inversion_error("data/grav15.dat", pyGravInv.ErrorNorm.L2ErrorNorm)
     measurement_depths, _, measurement_errors = np.loadtxt("data/grav15.dat", unpack=True)
+    inversion_depths = get_inversion_depth_steps(measurement_depths)
 
     # create Matrix A
     A = matrix_A(measurement_depths, measurement_errors, inversion_depths)
@@ -158,6 +158,15 @@ def ex11_1():
     print("UU^T != I_L:", print_helper(not np.allclose(UUT, I_L)))
 
 
+def get_inversion_depth_steps(measurement_depths, num_steps=10000):
+    """
+    Get the discretization depths of the inversion result
+    :param measurement_depths: np array containing measurement depths
+    :param num_steps: Number of steps used for discretozation
+    :return:
+    """
+    num_steps += 2
+    return np.linspace(0, measurement_depths[-1], num_steps)
 
 
 if __name__ == '__main__':
