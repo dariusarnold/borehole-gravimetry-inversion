@@ -128,19 +128,36 @@ def print_helper(condition):
     return "OK" if condition else "FAIL"
 
 
-def ex11_1():
-    # invert the data
-    measurement_depths, _, measurement_errors = np.loadtxt("data/grav15.dat", unpack=True)
+def do_SVD(fname):
+    """
+
+    :param fname:
+    :return:
+    """
+    # read/calculate required values
+    measurement_depths, _, measurement_errors = np.loadtxt(fname, unpack=True)
     inversion_depths = get_inversion_depth_steps(measurement_depths)
 
     # create Matrix A
     A = matrix_A(measurement_depths, measurement_errors, inversion_depths)
     # do svd
     V, Lambda, U_transposed = np.linalg.svd(A, full_matrices=False)
+    return V, Lambda, U_transposed
+
+
+def get_NL(fname):
+    measurement_depths, _, measurement_errors = np.loadtxt(fname, unpack=True)
+    inversion_depths = get_inversion_depth_steps(measurement_depths)
     # N: number of measurement points
     N = len(measurement_depths)
     # L : number of inversion depths
     L = len(inversion_depths)
+    return N, L
+
+
+def ex11_1(fname):
+    V, Lambda, U_transposed = do_SVD(fname)
+    N, L = get_NL(fname)
 
     # check if the conditions are fullfilled
     V_transposed = np.transpose(V)
