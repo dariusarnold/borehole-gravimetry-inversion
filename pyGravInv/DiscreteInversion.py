@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import pyGravInv
+import matplotlib.pyplot as plt
 
 
 def find_closest_index(array, value):
@@ -186,5 +187,39 @@ def get_inversion_depth_steps(measurement_depths, num_steps=10000):
     return np.linspace(0, measurement_depths[-1], num_steps)
 
 
+def new_data(old_data, V_transposed, measurement_errors):
+    return (1/measurement_errors) * np.dot(V_transposed, old_data)
+
+
+def misfit_squared(new_data, nu, Lambda):
+    """
+    Calculate new misfit
+    :param new_data: d''
+    :param nu: Lagrange parameter
+    :param Lambda: Vector containing the Eigenvalues of the SVD
+    :return: Chi²
+    """
+    zwischen = (new_data / (1 + nu*Lambda))**2
+    return sum(zwischen)
+
+
+def ex11_2(fname):
+    measurement_depths, measurement_dens, measurement_errors = np.loadtxt(fname, unpack=True)
+    V, Lambda, U_transposed = do_SVD(fname)
+    # calculate new data
+    d_double_prime = new_data(measurement_dens, np.transpose(V),  measurement_errors)
+    # calculate misfit for multiple values of nu
+    range_of_nus = np.logspace(1E-6, 1E2, 10000)
+    range_of_chis = np.array([misfit_squared(d_double_prime, nu, Lambda) for nu in range_of_nus])
+    plt.plot(range_of_nus, range_of_chis)
+    plt.show()
+
+
+
+def main():
+    #ex11_1("data/grav15.dat")
+    ex11_2("data/grav15.dat")
+
+
 if __name__ == '__main__':
-    ex11_1()
+    main()
