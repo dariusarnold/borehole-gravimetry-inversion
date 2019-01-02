@@ -155,7 +155,19 @@ protected:
     virtual double calculate_misfit(double nu);
     virtual double calculate_norm();
     virtual void solve_for_alpha(double nu);
-    double calc_nu_bysection(double nu_left, double nu_right, double desired_misfit);
+    /**
+     * The Lagrange parameter nu weighs between the norm and the misfit of a model.
+     * Misfit is a strictly monotonically falling function with regard to the lagrange parameter nu.
+     * Therefore a bisection search can be used to find the ideal Lagrange parameter where the misfit of the inversion 
+     * model is equal to the desired_misfit. 
+     * The function will throw a std::range_error when the desired misfit can't be reached with the values of nu in the
+     * interval between nu_left and nu_right
+     * @param nu_left Start value of the left border of the interval
+     * @param nu_right Start value of the right border of the interval
+     * @param desired_misfit Target misfit value to reach
+     * @return Optimal Lagrange parameter nu. 
+     */
+    double calc_nu_bysection(double nu_left, double nu_right, double desired_misfit, double accuracy = 0.01);
 
     std::vector<double> measurement_errors;
     // will hold error matrix sigma. Sigma is diagonal with error values sigma_1 sigma_2 etc on the diagonal

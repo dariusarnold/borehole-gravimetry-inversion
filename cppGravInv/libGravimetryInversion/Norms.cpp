@@ -114,7 +114,7 @@ double ErrorNorm::calculate_misfit(double nu) {
     return misfit;
 }
 
-double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desired_misfit) {
+double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desired_misfit, double accuracy) {
     // calc misfits for left and right end of interval to check if the middle is within this interval
     solve_for_alpha(nu_left);
     double misfit_left = calculate_misfit(nu_left);
@@ -130,7 +130,6 @@ double ErrorNorm::calc_nu_bysection(double nu_left, double nu_right, double desi
     // calc misfit for center of interval
     nu_left = log(nu_left);
     nu_right = log(nu_right);
-    double accuracy = 0.01;
     double misfit_mid, nu_mid;
     // else use bisection to search the optimal nu
     do {
