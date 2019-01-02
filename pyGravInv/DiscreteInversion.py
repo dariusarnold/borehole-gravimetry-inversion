@@ -203,7 +203,7 @@ def misfit_squared(new_data, nu, Lambda):
     :return: Chi²
     """
     zwischen = (new_data / (1 + nu*Lambda))**2
-    return sum(zwischen)
+    return np.sum(zwischen)
 
 
 def ex11_2(fname):
@@ -251,7 +251,6 @@ def optimal_nu_bysection(target_misfit, new_data, Lambda, accuracy=0.01):
             nu_left = nu_mid
         else:
             nu_right = nu_mid
-    print(nu_mid)
     return nu_mid
 
 
