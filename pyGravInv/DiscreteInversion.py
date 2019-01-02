@@ -275,9 +275,14 @@ def ex11_3(fname):
 
 
 def main():
-    #ex11_1("data/grav15.dat")
-    ex11_2("data/grav15.dat")
-    ex11_3("data/grav15.dat")
+    selection = input("Which task? (1, 2, 3, 4)\n")
+    selection = list(selection.strip())
+    for s in selection:
+        try:
+            function_name = getattr(__import__(__name__), f"ex11_{s}")
+            function_name("data/grav15.dat")
+        except AttributeError:
+            print(f"Task {s} is not available")
 
 
 if __name__ == '__main__':
