@@ -121,8 +121,8 @@ def matrix_A(measurement_depths, measurement_errors, inversion_depths):
     S_shape = (len(inversion_depths), len(inversion_depths))
     dx = inversion_depths[1] - inversion_depths[0]
     S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
-    A = np.dot(Sigma_inverted, B)
-    A = np.dot(A,  S_inverted)
+    A = Sigma_inverted @ B
+    A = A @  S_inverted
     return A
 
 
@@ -165,16 +165,16 @@ def ex11_1(fname):
 
     # check if the conditions are fullfilled
     V_transposed = np.transpose(V)
-    VTV = np.dot(V_transposed, V)
-    VVT = np.dot(V, V_transposed)
+    VTV = V_transposed @ V
+    VVT = V @ V_transposed
     I_N = np.identity(N)
     I_L = np.identity(L)
     print_check_result(name="V^T*V == V*V^T", check=np.allclose(VTV, VVT))
     print_check_result(name="V^T*V == I_N", check=np.allclose(VTV, I_N))
     #next condition
     U = np.transpose(U_transposed)
-    UUT = np.dot(U, U_transposed)
-    UTU = np.dot(U_transposed, U)
+    UUT = U @ U_transposed
+    UTU = U_transposed @ U
     print_check_result(name="U^T*U == I_N", check=np.allclose(UTU, I_N))
     print_check_result(name="U*U^T != I_L", check=not np.allclose(UUT, I_L))
 
@@ -191,7 +191,7 @@ def get_inversion_depth_steps(measurement_depths, num_steps=10000):
 
 
 def new_data(old_data, V_transposed, measurement_errors):
-    return (1/measurement_errors) * np.dot(V_transposed, old_data)
+    return (1/measurement_errors) * (V_transposed @ old_data)
 
 
 def misfit_squared(new_data, nu, Lambda):
@@ -223,7 +223,7 @@ def calculate_coeffs(new_data, nu, Lambda):
 
 
 def calculate_model(S_inverted, U, new_coefficients):
-    return np.dot(np.dot(S_inverted, U), new_coefficients)
+    return S_inverted @ U @ new_coefficients
 
 
 def optimal_nu_bysection(target_misfit, new_data, Lambda, accuracy=0.01):
