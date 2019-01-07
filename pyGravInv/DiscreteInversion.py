@@ -177,6 +177,9 @@ def ex11_2(fname):
     range_of_nus = np.logspace(-2, 2, 1000)
     range_of_chis = np.array([misfit_squared(d_double_prime, nu, Lambda) for nu in range_of_nus])
     plt.plot(range_of_nus, range_of_chis, ".")
+    plt.title(r"$\nu/\chi^2$")
+    plt.xlabel(r"Lagrangeparameter $\nu$")
+    plt.ylabel(r"Misfit $\chi^2$")
     plt.show()
 
 
@@ -213,7 +216,7 @@ def optimal_nu_bysection(target_misfit, new_data, Lambda, accuracy=0.01):
             nu_left = nu_mid
         else:
             nu_right = nu_mid
-    print(nu_mid)
+    print(f"Optimal Lagrange parameter: {nu_mid}")
     return nu_mid
 
 
@@ -223,6 +226,11 @@ def correct_free_air_gradient(measurement_depths, measurement_data):
 
 
 def read_data(fname):
+    """
+    Read measurement data with errors from fname and correct the data for the free air gradient
+    :param fname:
+    :return:
+    """
     measurement_depths, measurement_data, measurement_errors = np.loadtxt(fname, unpack=True)
     measurement_data = correct_free_air_gradient(measurement_depths, measurement_data)
     return measurement_depths, measurement_data, measurement_errors
@@ -243,7 +251,10 @@ def ex11_3(fname):
     dx = inversion_depths[1] - inversion_depths[0]
     S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
     dens_model = calculate_model(S_inverted, np.transpose(U_transposed), new_coefficients=alpha_double_prime)
-    plt.plot(dens_model)
+    plt.plot(inversion_depths, dens_model)
+    plt.title("Density Model")
+    plt.xlabel(r"Depth $z$ (m)")
+    plt.ylabel(r"Density $\rho$ (g/cm³)")
     plt.show()
 
 
