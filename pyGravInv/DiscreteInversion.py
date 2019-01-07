@@ -82,8 +82,7 @@ def matrix_A(measurement_depths, measurement_errors, inversion_depths):
     S_shape = (len(inversion_depths), len(inversion_depths))
     dx = inversion_depths[1] - inversion_depths[0]
     S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
-    A = Sigma_inverted @ B
-    A = A @  S_inverted
+    A = Sigma_inverted @ B @ S_inverted
     return A
 
 
@@ -214,6 +213,7 @@ def optimal_nu_bysection(target_misfit, new_data, Lambda, accuracy=0.01):
             nu_left = nu_mid
         else:
             nu_right = nu_mid
+    print(nu_mid)
     return nu_mid
 
 
@@ -232,10 +232,10 @@ def ex11_3(fname):
     measurement_depths, measurement_data, measurement_errors = read_data(fname)
     inversion_depths = get_inversion_depth_steps(measurement_depths)
     V, Lambda, U_transposed = do_SVD(fname)
-    desired_misfit = len(measurement_depths)
     # calculate new data
     d_double_prime = new_data(measurement_data, np.transpose(V),  measurement_errors)
     # calculate desired misfit using bisection
+    desired_misfit = len(measurement_depths)
     optimal_nu = optimal_nu_bysection(desired_misfit, d_double_prime, Lambda)
     # calculate new coefficients
     alpha_double_prime = calculate_coeffs(d_double_prime, optimal_nu, Lambda)
