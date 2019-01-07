@@ -154,7 +154,7 @@ def get_inversion_depth_steps(measurement_depths, num_steps=10000):
 
 
 def new_data(old_data, V_transposed, measurement_errors):
-    return (1/measurement_errors) * (V_transposed @ old_data)
+    return (1/measurement_errors) * V_transposed @ old_data
 
 
 def misfit_squared(new_data, nu, Lambda):
@@ -165,7 +165,7 @@ def misfit_squared(new_data, nu, Lambda):
     :param Lambda: Vector containing the Eigenvalues of the SVD
     :return: Chi²
     """
-    zwischen = (new_data / (1 + nu*Lambda))**2
+    zwischen = (new_data / (1 + nu*Lambda**2))**2
     return np.sum(zwischen)
 
 
@@ -182,7 +182,7 @@ def ex11_2(fname):
 
 
 def calculate_coeffs(new_data, nu, Lambda):
-    return new_data / ( (1/nu + 1/Lambda) + Lambda )
+    return new_data / ( (1/nu * 1/Lambda) + Lambda )
 
 
 def calculate_model(S_inverted, U, new_coefficients):
