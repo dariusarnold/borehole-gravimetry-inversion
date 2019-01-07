@@ -170,10 +170,10 @@ def misfit_squared(new_data, nu, Lambda):
 
 
 def ex11_2(fname):
-    measurement_depths, measurement_dens, measurement_errors = np.loadtxt(fname, unpack=True)
+    measurement_depths, measurement_data, measurement_errors = read_data(fname)
     V, Lambda, U_transposed = do_SVD(fname)
     # calculate new data
-    d_double_prime = new_data(measurement_dens, np.transpose(V),  measurement_errors)
+    d_double_prime = new_data(measurement_data, np.transpose(V),  measurement_errors)
     # calculate misfit for multiple values of nu
     range_of_nus = np.logspace(-2, 2, 1000)
     range_of_chis = np.array([misfit_squared(d_double_prime, nu, Lambda) for nu in range_of_nus])
@@ -217,13 +217,24 @@ def optimal_nu_bysection(target_misfit, new_data, Lambda, accuracy=0.01):
     return nu_mid
 
 
+def correct_free_air_gradient(measurement_depths, measurement_data):
+    f = 0.308 # mGal / m
+    return measurement_data - f * measurement_depths
+
+
+def read_data(fname):
+    measurement_depths, measurement_data, measurement_errors = np.loadtxt(fname, unpack=True)
+    measurement_data = correct_free_air_gradient(measurement_depths, measurement_data)
+    return measurement_depths, measurement_data, measurement_errors
+
+
 def ex11_3(fname):
-    measurement_depths, measurement_dens, measurement_errors = np.loadtxt(fname, unpack=True)
+    measurement_depths, measurement_data, measurement_errors = read_data(fname)
     inversion_depths = get_inversion_depth_steps(measurement_depths)
     V, Lambda, U_transposed = do_SVD(fname)
     desired_misfit = len(measurement_depths)
     # calculate new data
-    d_double_prime = new_data(measurement_dens, np.transpose(V),  measurement_errors)
+    d_double_prime = new_data(measurement_data, np.transpose(V),  measurement_errors)
     # calculate desired misfit using bisection
     optimal_nu = optimal_nu_bysection(desired_misfit, d_double_prime, Lambda)
     # calculate new coefficients
@@ -237,7 +248,7 @@ def ex11_3(fname):
 
 
 def ex11_4(fname):
-    measurement_depths, measurement_dens, measurement_errors = np.loadtxt(fname, unpack=True)
+    measurement_depths, measurement_data, measurement_errors = read_data(fname)
     inversion_depths = get_inversion_depth_steps(measurement_depths)
     V, Lambda, U_transposed = do_SVD(fname)
     S_shape = (len(inversion_depths), len(inversion_depths))
