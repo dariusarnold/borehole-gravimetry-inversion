@@ -86,7 +86,7 @@ def matrix_A(measurement_depths, measurement_errors, inversion_depths):
     return A
 
 
-def do_SVD(fname, full_matrices=False):
+def do_SVD(fname, full_matrices=False, num_steps=10000):
     """
 
     :param fname:
@@ -94,7 +94,7 @@ def do_SVD(fname, full_matrices=False):
     """
     # read/calculate required values
     measurement_depths, _, measurement_errors = np.loadtxt(fname, unpack=True)
-    inversion_depths = get_inversion_depth_steps(measurement_depths)
+    inversion_depths = get_inversion_depth_steps(measurement_depths, num_steps=num_steps)
 
     # create Matrix A
     A = matrix_A(measurement_depths, measurement_errors, inversion_depths)
@@ -260,8 +260,8 @@ def ex11_3(fname):
 
 def ex11_4(fname):
     measurement_depths, measurement_data, measurement_errors = read_data(fname)
-    inversion_depths = get_inversion_depth_steps(measurement_depths)
-    V, Lambda, U_transposed = do_SVD(fname)
+    inversion_depths = get_inversion_depth_steps(measurement_depths, num_steps=200)
+    V, Lambda, U_transposed = do_SVD(fname, full_matrices=True, num_steps=200)
     S_shape = (len(inversion_depths), len(inversion_depths))
     dx = inversion_depths[1] - inversion_depths[0]
     S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
@@ -270,9 +270,15 @@ def ex11_4(fname):
     # representants now holds the representants in its columns, but it is set up so that indexing it accesses its rows
     # transpose it to access the representants by index
     representants = np.transpose(representants)
-    f, ax_arr = plt.subplots(len(representants), sharex=True)
-    for i, repr in enumerate(representants):
+    f, ax_arr = plt.subplots(len(measurement_data), sharex=True)
+    for i, repr in enumerate(representants[0:len(measurement_data)]):
+        print(i)
         ax_arr[i].plot(repr)
+    plt.title("Representants")
+    plt.figure()
+    for nullspace_vector in representants[len(measurement_data):]:
+        plt.plot(nullspace_vector)
+    plt.title("Eigenvectors null space")
     plt.show()
 
 
