@@ -86,7 +86,7 @@ def matrix_A(measurement_depths, measurement_errors, inversion_depths):
     return A
 
 
-def do_SVD(fname):
+def do_SVD(fname, full_matrices=False):
     """
 
     :param fname:
@@ -99,7 +99,7 @@ def do_SVD(fname):
     # create Matrix A
     A = matrix_A(measurement_depths, measurement_errors, inversion_depths)
     # do svd
-    V, Lambda, U_transposed = np.linalg.svd(A, full_matrices=False)
+    V, Lambda, U_transposed = np.linalg.svd(A, full_matrices=full_matrices)
     return V, Lambda, U_transposed
 
 
