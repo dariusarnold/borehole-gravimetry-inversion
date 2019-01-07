@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pyGravInv.DiscreteInversion.DiscreteInversion import do_SVD, invert_errors
+from pyGravInv.DiscreteInversion.components import new_data, misfit_squared, matrix_S_inverted
 from pyGravInv.DiscreteInversion.helpers import get_NL, read_data, get_inversion_depth_steps
-from pyGravInv.DiscreteInversion.components import new_data, misfit_squared, matrix_S_inverted, calculate_model, calculate_coeffs
-from pyGravInv.DiscreteInversion.DiscreteInversion import do_SVD, optimal_nu_bysection
 
 
 def print_check_result(name, check):
@@ -48,21 +48,8 @@ def ex11_2(fname):
 
 
 def ex11_3(fname):
-    measurement_depths, measurement_data, measurement_errors = read_data(fname)
-    inversion_depths = get_inversion_depth_steps(measurement_depths)
-    V, Lambda, U_transposed = do_SVD(fname)
-    # calculate new data
-    d_double_prime = new_data(measurement_data, np.transpose(V),  measurement_errors)
-    # calculate desired misfit using bisection
-    desired_misfit = len(measurement_depths)
-    optimal_nu = optimal_nu_bysection(desired_misfit, d_double_prime, Lambda)
-    # calculate new coefficients
-    alpha_double_prime = calculate_coeffs(d_double_prime, optimal_nu, Lambda)
-    S_shape = (len(inversion_depths), len(inversion_depths))
-    dx = inversion_depths[1] - inversion_depths[0]
-    S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
-    dens_model = calculate_model(S_inverted, np.transpose(U_transposed), new_coefficients=alpha_double_prime)
-    plt.plot(inversion_depths, dens_model)
+    depths, densities = invert_errors(fname)
+    plt.plot(depths, densities)
     plt.title("Density Model")
     plt.xlabel(r"Depth $z$ (m)")
     plt.ylabel(r"Density $\rho$ (g/cm³)")
