@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from pyGravInv.DiscreteInversion.DiscreteInversion import do_SVD, invert_errors
+from pyGravInv.DiscreteInversion.DiscreteInversion import invert_errors
 from pyGravInv.DiscreteInversion.components import new_data, misfit_squared, matrix_S_inverted
-from pyGravInv.DiscreteInversion.helpers import get_NL, read_data, get_inversion_depth_steps
+from pyGravInv.DiscreteInversion.helpers import get_N, read_data, get_inversion_depth_steps, do_SVD_from_file
 
 
 def print_check_result(name, check):
@@ -13,10 +13,18 @@ def print_check_result(name, check):
 
 
 def ex11_1(fname):
-    V, Lambda, U_transposed = do_SVD(fname)
-    N, L = get_NL(fname)
+    """
+    Do SVD (A = V S U.T) and check the following conditions:
+    V.T V = V V.T = I_N
+    U.T U = I_N
+    U U.T != I_L
+    for the NxL matrix A
+    """
+    # do just 1000 discretiation steps to get quicker results
+    V, Lambda, U_transposed, L = do_SVD_from_file(fname, num_steps=1000)
+    N = get_N(fname)
 
-    # check if the conditions are fullfilled
+    # check if the conditions are fulfilled
     V_transposed = np.transpose(V)
     VTV = V_transposed @ V
     VVT = V @ V_transposed
@@ -24,7 +32,7 @@ def ex11_1(fname):
     I_L = np.identity(L)
     print_check_result(name="V^T*V == V*V^T", check=np.allclose(VTV, VVT))
     print_check_result(name="V^T*V == I_N", check=np.allclose(VTV, I_N))
-    #next condition
+    # next condition
     U = np.transpose(U_transposed)
     UUT = U @ U_transposed
     UTU = U_transposed @ U
@@ -33,8 +41,11 @@ def ex11_1(fname):
 
 
 def ex11_2(fname):
+    """
+    Calculate new data d'' and misfit chi² and plot chi²(nu)
+    """
     measurement_depths, measurement_data, measurement_errors = read_data(fname)
-    V, Lambda, U_transposed = do_SVD(fname)
+    V, Lambda, U_transposed, _ = do_SVD_from_file(fname)
     # calculate new data
     d_double_prime = new_data(measurement_data, np.transpose(V),  measurement_errors)
     # calculate misfit for multiple values of nu
@@ -48,6 +59,9 @@ def ex11_2(fname):
 
 
 def ex11_3(fname):
+    """
+    Do inversion and plot result
+    """
     depths, densities = invert_errors(fname)
     plt.plot(depths, densities)
     plt.title("Density Model")
@@ -57,9 +71,12 @@ def ex11_3(fname):
 
 
 def ex11_4(fname):
+    """
+    Plot eigenvectors of the null space and the orthogonal representers
+    """
     measurement_depths, measurement_data, measurement_errors = read_data(fname)
     inversion_depths = get_inversion_depth_steps(measurement_depths, num_steps=200)
-    V, Lambda, U_transposed = do_SVD(fname, full_matrices=True, num_steps=200)
+    V, Lambda, U_transposed, _ = do_SVD_from_file(fname, full_matrices=True, num_steps=200)
     S_shape = (len(inversion_depths), len(inversion_depths))
     dx = inversion_depths[1] - inversion_depths[0]
     S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
@@ -68,6 +85,7 @@ def ex11_4(fname):
     # representants now holds the representants in its columns, but it is set up so that indexing it accesses its rows
     # transpose it to access the representants by index
     representants = np.transpose(representants)
+
     # create enough subplots to plot all representes
     f, ax_arr = plt.subplots(len(measurement_data), sharex=True)
     plt.suptitle("Representants")
