@@ -270,14 +270,18 @@ def ex11_4(fname):
     # representants now holds the representants in its columns, but it is set up so that indexing it accesses its rows
     # transpose it to access the representants by index
     representants = np.transpose(representants)
+    # create enough subplots to plot all representes
     f, ax_arr = plt.subplots(len(measurement_data), sharex=True)
+    plt.suptitle("Representants")
     for i, repr in enumerate(representants[0:len(measurement_data)]):
-        print(i)
-        ax_arr[i].plot(repr)
-    plt.title("Representants")
+        # show singular value belonging to representer in legend
+        ax_arr[i].plot(inversion_depths, repr, label=f"$\lambda_{{{i+1}}}$: {Lambda[i]:4.1f}")
+        ax_arr[i].legend()
+    plt.xlabel(r"Depth $z$ in m")
     plt.figure()
     for nullspace_vector in representants[len(measurement_data):]:
-        plt.plot(nullspace_vector)
+        plt.plot(inversion_depths, nullspace_vector)
+    plt.xlabel(r"Depth $z$ in m")
     plt.title("Eigenvectors null space")
     plt.show()
 
