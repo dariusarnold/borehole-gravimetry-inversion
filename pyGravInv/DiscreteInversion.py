@@ -275,6 +275,23 @@ def ex11_3(fname):
     plt.show()
 
 
+def ex11_4(fname):
+    measurement_depths, measurement_dens, measurement_errors = np.loadtxt(fname, unpack=True)
+    inversion_depths = get_inversion_depth_steps(measurement_depths)
+    V, Lambda, U_transposed = do_SVD(fname)
+    S_shape = (len(inversion_depths), len(inversion_depths))
+    dx = inversion_depths[1] - inversion_depths[0]
+    S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
+    U = np.transpose(U_transposed)
+    representants = S_inverted @ U
+    # representants now holds the representants in its columns, but it is set up so that indexing it accesses its rows
+    # transpose it to access the representants by index
+    representants = np.transpose(representants)
+    f, ax_arr = plt.subplots(len(representants), sharex=True)
+    for i, repr in enumerate(representants):
+        ax_arr[i].plot(repr)
+    plt.show()
+
 
 def main():
     selection = input("Which task? (1, 2, 3, 4)\n")
