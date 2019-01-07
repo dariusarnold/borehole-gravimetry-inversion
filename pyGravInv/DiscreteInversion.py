@@ -33,39 +33,39 @@ def matrix_Sigma_inverted(errors):
     return Sigma_inverted
 
 
-def calculate_B_row(depth_distribution, depth_j):
-    """
-    Calculate a row of the B matrix
-    :param depth_distribution: ndarray containing inversion depths
-    :param depth_j: measurement depth for which to calculate row
-    :return: row of B
-    """
-    gamma = 0.08382  # (mGal cm^3)/(m g)
-    z = depth_distribution
-    alpha = np.searchsorted(z, depth_j) - 1
-    del_j = (depth_j - z[alpha])/(z[alpha+1] - z[alpha])
-
-    B_j = np.zeros(z.size)
-    if alpha == 0:
-        B_j[alpha] = (2-del_j)*del_j*(z[alpha+1] - z[alpha])
-    else:
-        B_j[0] = (z[1]-z[0])
-        for i in range(1, alpha):
-            B_j[i] = (z[i]-z[i-1]) + (z[i+1]-z[i])
-        B_j[alpha] = (z[alpha]-z[alpha-1]) + (2 - del_j)*del_j*(z[alpha+1] - z[alpha])
-    B_j[alpha+1] = del_j**2*(z[alpha+1] - z[alpha])
-    B_j *= -0.5*gamma
-    return B_j
-
-
 def matrix_B(measurement_depths, inversion_depths):
     """
     Calculate B matrix from B rows.
     :return: B matrix
     """
+
+    def calculate_B_row(depth_j):
+        """
+        Calculate a row of the B matrix
+        :param depth_distribution: ndarray containing inversion depths
+        :param depth_j: measurement depth for which to calculate row
+        :return: row of B
+        """
+        gamma = 0.08382  # (mGal cm^3)/(m g)
+        z = inversion_depths
+        alpha = np.searchsorted(z, depth_j) - 1
+        del_j = (depth_j - z[alpha])/(z[alpha+1] - z[alpha])
+
+        B_j = np.zeros(z.size)
+        if alpha == 0:
+            B_j[alpha] = (2-del_j)*del_j*(z[alpha+1] - z[alpha])
+        else:
+            B_j[0] = (z[1]-z[0])
+            for i in range(1, alpha):
+                B_j[i] = (z[i]-z[i-1]) + (z[i+1]-z[i])
+            B_j[alpha] = (z[alpha]-z[alpha-1]) + (2 - del_j)*del_j*(z[alpha+1] - z[alpha])
+        B_j[alpha+1] = del_j**2*(z[alpha+1] - z[alpha])
+        B_j *= -0.5*gamma
+        return B_j
+
     B = np.zeros((measurement_depths.size, inversion_depths.size))
     for i, zj in enumerate(measurement_depths):
-        B[i] = calculate_B_row(inversion_depths, zj)
+        B[i] = calculate_B_row(zj)
     return B
 
 
