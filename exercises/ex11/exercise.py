@@ -55,6 +55,8 @@ def ex11_2(fname):
     plt.title(r"$\nu/\chi^2$")
     plt.xlabel(r"Lagrangeparameter $\nu$")
     plt.ylabel(r"Misfit $\chi^2$")
+    plt.xscale("log")
+    plt.yscale("log")
     plt.show()
 
 

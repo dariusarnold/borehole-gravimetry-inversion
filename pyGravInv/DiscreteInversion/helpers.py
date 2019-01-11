@@ -38,7 +38,7 @@ def read_data(fname):
     """
     Read measurement data with errors from fname and correct the data for the free air gradient
     :param fname:
-    :return:
+    :return: measurement depth, measurement data (free air gradient corrected), measurement errors
     """
     measurement_depths, measurement_data, measurement_errors = np.loadtxt(fname, unpack=True)
     measurement_data = correct_free_air_gradient(measurement_depths, measurement_data)
