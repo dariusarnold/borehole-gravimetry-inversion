@@ -95,6 +95,17 @@ def matrix_A(measurement_depths, measurement_errors, inversion_depths):
     return A
 
 
+def matrix_R(S_inverted, U, D_nu_inverted, Lambda):
+    S = np.linalg.inv(S_inverted)
+    R = S_inverted @ U @ D_nu_inverted @ np.diag(Lambda) @ U.T @ S
+    return R
+
+
+def matrix_D_nu(nu, Lambda):
+    diagonal_elements = 1/nu * 1/Lambda + Lambda
+    return np.diag(diagonal_elements)
+
+
 def new_data(old_data, V_transposed, measurement_errors):
     return (1/measurement_errors) * V_transposed @ old_data
 
