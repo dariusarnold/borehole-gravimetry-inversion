@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyGravInv.DiscreteInversion.components import new_data, calculate_coeffs, optimal_nu_bysection, \
-    matrix_S_inverted, calculate_model
+    matrix_S_inverted_helper, calculate_model
 from pyGravInv.DiscreteInversion.helpers import get_inversion_depth_steps, read_data, do_SVD_from_file
 from pyGravInv.ModelMaker.DensityModel import DiscretizedDensityModel
 
@@ -52,8 +52,6 @@ def invert_errors(fname, nu=None, depth_num_steps=10000):
     optimal_nu, misfit = optimal_nu_bysection(desired_misfit, d_double_prime, Lambda)
     # calculate new coefficients
     alpha_double_prime = calculate_coeffs(d_double_prime, optimal_nu, Lambda)
-    S_shape = (len(inversion_depths), len(inversion_depths))
-    dx = inversion_depths[1] - inversion_depths[0]
-    S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
+    S_inverted = matrix_S_inverted_helper(inversion_depths)
     dens_model = calculate_model(S_inverted, np.transpose(U_transposed), new_coefficients=alpha_double_prime)
     return InversionModel(inversion_depths, dens_model, optimal_nu, misfit)

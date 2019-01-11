@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pyGravInv.DiscreteInversion.DiscreteInversion import invert_errors
-from pyGravInv.DiscreteInversion.components import new_data, misfit_squared, matrix_S_inverted
+from pyGravInv.DiscreteInversion.components import new_data, misfit_squared, matrix_S_inverted_helper
 from pyGravInv.DiscreteInversion.helpers import get_N, read_data, get_inversion_depth_steps, do_SVD_from_file
 
 
@@ -79,9 +79,7 @@ def ex11_4(fname):
     measurement_depths, measurement_data, measurement_errors = read_data(fname)
     inversion_depths = get_inversion_depth_steps(measurement_depths, num_steps=200)
     V, Lambda, U_transposed, _ = do_SVD_from_file(fname, full_matrices=True, num_steps=200)
-    S_shape = (len(inversion_depths), len(inversion_depths))
-    dx = inversion_depths[1] - inversion_depths[0]
-    S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
+    S_inverted = matrix_S_inverted_helper(inversion_depths)
     U = np.transpose(U_transposed)
     representants = S_inverted @ U
     # representants now holds the representants in its columns, but it is set up so that indexing it accesses its rows

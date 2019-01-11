@@ -4,6 +4,16 @@ Contains functions calculating all the required variables
 import numpy as np
 
 
+def matrix_S_inverted_helper(inversion_depths):
+    """"
+    Helper function to get the matrix S^-1
+    """
+    S_shape = (len(inversion_depths), len(inversion_depths))
+    dx = inversion_depths[1] - inversion_depths[0]
+    S_inverted = matrix_S_inverted(gamma=1E-3, shape=S_shape, delta_x=dx)
+    return S_inverted
+
+
 def matrix_S_inverted(delta_x, gamma, shape):
     """
     Create matrix S⁻1 that represents the derivative
