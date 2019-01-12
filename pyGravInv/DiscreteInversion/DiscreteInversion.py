@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyGravInv.DiscreteInversion.components import new_data, calculate_coeffs, optimal_nu_bysection, \
-    matrix_S_inverted_helper, calculate_model
+    matrix_S_inverted_helper, calculate_model, matrix_D_nu, matrix_R
 from pyGravInv.DiscreteInversion.helpers import get_inversion_depth_steps, read_data, do_SVD_from_file
 from pyGravInv.ModelMaker.DensityModel import DiscretizedDensityModel
 
