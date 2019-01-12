@@ -11,6 +11,8 @@ def ex_1(fname):
     R = resolution_matrix(fname, depth_num_steps=NUMBER_OF_DEPTH_STEPS)
     extent = (inversion_depths[0], inversion_depths[-1], inversion_depths[-1], inversion_depths[0])
     plt.imshow(R, interpolation="none", extent=extent)
+    cbar = plt.colorbar()
+    cbar.set_label("Density (g/cm³)")
     plt.xlabel("Tiefe der dünnen Schicht (m)")
     plt.ylabel("Tiefe (m)")
     plt.title("Resolutionsmatrix")
